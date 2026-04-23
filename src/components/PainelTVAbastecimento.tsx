@@ -3,9 +3,10 @@ import {
   Tv2, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2,
   Clock, PackageX, AlertCircle, ShieldCheck, Users,
   TrendingDown, ChevronLeft, ChevronRight, Activity, Monitor,
-  ArrowLeft, Zap, AlertTriangle, DollarSign, BarChart2, Truck,
+  ArrowLeft, Zap, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { type FollowUpItem } from '../types';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
@@ -60,15 +61,37 @@ interface ABCSummary {
   valA: number; valB: number; valC: number;
 }
 
+export interface TVConsumoItem {
+  cod: string;
+  produto: string;
+  qtdConsumo: number;
+  vlCustoPeriodo: number;
+}
+
+export interface TVValidadeItem {
+  produto: string;
+  lote: string;
+  validadeStr: string;
+  validadeData: string | Date;
+  diasParaVencer: number;
+  quantidade: number;
+}
+
 interface AbastecimentoTVData {
   savedAt: string;
   kpis: TVKpis;
   items: TVItem[];
   suppliers: TVSupplier[];
   abcSummary?: ABCSummary;
+  consumos?: TVConsumoItem[];
+  validades?: TVValidadeItem[];
+  kpisValidade?: {
+    itensVencendo30d: number;
+    itensVencendo90d: number;
+  };
 }
 
-type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup';
+type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup' | 'consumo' | 'estoque_validade';
 
 interface Slide {
   type: SlideType;
@@ -597,6 +620,124 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
   );
 }
 
+// ── Sub-componente: Consumo Financeiro ──────────────────────────────────────
+
+function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: ABCSummary }) {
+  const top10 = consumos.slice(0, 10);
+  const totalValor = consumos.reduce((s, c) => s + c.vlCustoPeriodo, 0);
+  
+  const pieColors = ['#ef4444', '#f59e0b', '#64748b'];
+  const pieData = abc ? [
+    { name: 'Classe A', value: abc.valA || 0 },
+    { name: 'Classe B', value: abc.valB || 0 },
+    { name: 'Classe C', value: abc.valC || 0 }
+  ] : [];
+
+  return (
+    <div className="flex gap-6 h-full p-2">
+      <div className="flex-1 flex flex-col gap-4">
+        <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+           <div>
+             <p className="text-slate-400 text-sm font-semibold uppercase">Total Consumido Período</p>
+             <p className="text-4xl font-black text-indigo-400">R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+           </div>
+           <div className="text-right">
+             <p className="text-slate-400 text-sm font-semibold uppercase">Itens Movimentados</p>
+             <p className="text-3xl font-bold text-white">{consumos.length}</p>
+           </div>
+        </div>
+        <p className="text-slate-400 text-sm font-medium">Top 10 Produtos de Maior Custo</p>
+        <div className="flex-1 min-h-0 bg-slate-800/30 p-2 rounded-xl border border-slate-700/50">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={top10} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+              <XAxis type="number" hide />
+              <YAxis dataKey="produto" type="category" width={300} tick={{ fontSize: 11, fill: '#cbd5e1' }} axisLine={false} tickLine={false} />
+              <Tooltip 
+                 formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
+                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+              />
+              <Bar dataKey="vlCustoPeriodo" fill="#6366f1" radius={[0, 4, 4, 0]}>
+                {top10.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#6366f1'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      {abc && (
+        <div className="w-[350px] flex flex-col bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+           <p className="text-slate-400 text-sm font-bold text-center mb-6 uppercase">Representatividade ABC</p>
+           <div className="flex-1 w-full min-h-[250px]">
+             <ResponsiveContainer width="100%" height="100%">
+               <PieChart>
+                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
+                   {pieData.map((_, index) => (
+                     <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                   ))}
+                 </Pie>
+                 <Tooltip formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`} contentStyle={{ backgroundColor: '#1e293b', border: 'none' }} />
+                 <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1', fontSize: '12px' }} />
+               </PieChart>
+             </ResponsiveContainer>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Sub-componente: Validade e Estoque ────────────────────────────────────
+
+function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { validades: TVValidadeItem[], kpis: any, pageIndex: number, totalPages: number }) {
+  const page = validades.slice(pageIndex * ITEMS_PER_SLIDE, (pageIndex + 1) * ITEMS_PER_SLIDE);
+
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      <div className="flex gap-4">
+        <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-4 flex-1 flex justify-between items-center text-red-400">
+           <div>
+             <p className="text-xs font-bold uppercase tracking-wider">Vence em &lt; 30 Dias</p>
+             <p className="text-4xl font-black">{kpis?.itensVencendo30d || 0}</p>
+           </div>
+           <CalendarClock className="w-10 h-10 opacity-50" />
+        </div>
+        <div className="bg-amber-500/20 border border-amber-500/40 rounded-xl p-4 flex-1 flex justify-between items-center text-amber-400">
+           <div>
+             <p className="text-xs font-bold uppercase tracking-wider">Vence em &lt; 90 Dias</p>
+             <p className="text-3xl font-black">{kpis?.itensVencendo90d || 0}</p>
+           </div>
+           <CalendarClock className="w-8 h-8 opacity-50" />
+        </div>
+      </div>
+      
+      <p className="text-slate-400 text-xs font-medium uppercase mt-2">Lotes Mais Próximos de Expirar {totalPages > 1 && `(Pag ${pageIndex+1}/${totalPages})`}</p>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1">
+        {page.map((v, idx) => {
+          const isCritical = v.diasParaVencer <= 30;
+          return (
+            <motion.div key={`${v.produto}-${v.lote}-${idx}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }} className={`flex gap-3 p-3 rounded-lg border ${isCritical ? 'bg-red-500/10 border-red-500/40' : 'bg-amber-500/10 border-amber-500/40'}`}>
+               <div className={`flex flex-col items-center justify-center p-2 rounded-md ${isCritical ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'} min-w-[70px]`}>
+                 <span className="text-2xl font-black">{v.diasParaVencer}</span>
+                 <span className="text-[10px] font-bold uppercase">Dias</span>
+               </div>
+               <div className="flex-1 min-w-0 flex flex-col justify-center">
+                 <p className="text-white text-sm font-bold truncate">{toTitleCase(v.produto)}</p>
+                 <div className="flex gap-3 mt-1 text-xs text-slate-400">
+                   <span>Lote: <strong className="text-slate-300">{v.lote}</strong></span>
+                   <span>Vence: <strong className="text-slate-300">{v.validadeStr}</strong></span>
+                   <span>Qtd: <strong className="text-slate-300">{v.quantidade}</strong></span>
+                 </div>
+               </div>
+            </motion.div>
+          )
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Componente Principal ───────────────────────────────────────────────────
 
 export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbastecimentoProps) {
@@ -746,12 +887,26 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       result.push({ type: 'fornecedores', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slide Curva ABC (apenas se dados disponíveis)
+    // Slide Curva ABC
     if (tvData.abcSummary && (tvData.abcSummary.A + tvData.abcSummary.B + tvData.abcSummary.C) > 0) {
       result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slides Follow Up (apenas se houver OCs atrasadas)
+    // Slide Consumo Financeiro
+    if (tvData.consumos && tvData.consumos.length > 0) {
+      result.push({ type: 'consumo', pageIndex: 0, totalPages: 1 });
+    }
+
+    // Slide Validade Estoque
+    if (tvData.validades && tvData.validades.length > 0) {
+      const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90);
+      if (expiring.length > 0) {
+        const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
+        for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
+      }
+    }
+
+    // Slides Follow Up
     if (followUpKpis && followUpKpis.atrasados > 0) {
       const pages = Math.ceil(followUpKpis.topAtrasados.length / ITEMS_PER_SLIDE);
       for (let p = 0; p < pages; p++) result.push({ type: 'followup', pageIndex: p, totalPages: pages });
@@ -865,6 +1020,22 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
         iconColor: 'text-rose-400',
         iconPulse: true,
         progressColor: 'from-rose-600 to-rose-400',
+        theme: 'red' as const,
+      },
+      consumo: {
+        title: 'CONSUMO FINANCEIRO NO PERÍODO',
+        icon: PieChartIcon,
+        iconColor: 'text-indigo-400',
+        iconPulse: false,
+        progressColor: 'from-indigo-600 to-blue-400',
+        theme: 'blue' as const,
+      },
+      estoque_validade: {
+        title: 'ALERTA DE VALIDADE (PRÓXIMOS 90 DIAS)',
+        icon: CalendarClock,
+        iconColor: 'text-red-400',
+        iconPulse: true,
+        progressColor: 'from-red-600 to-orange-400',
         theme: 'red' as const,
       },
     };
@@ -1132,6 +1303,17 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
             {currentSlide.type === 'followup' && followUpKpis && (
               <FollowUpSlide
                 items={followUpKpis.topAtrasados}
+                pageIndex={currentSlide.pageIndex}
+                totalPages={currentSlide.totalPages}
+              />
+            )}
+            {currentSlide.type === 'consumo' && tvData!.consumos && (
+              <SlideConsumoABC consumos={tvData!.consumos} abc={tvData!.abcSummary} />
+            )}
+            {currentSlide.type === 'estoque_validade' && tvData!.validades && (
+              <SlideValidadeEstoque
+                validades={tvData!.validades.filter(v => v.diasParaVencer <= 90)}
+                kpis={tvData!.kpisValidade}
                 pageIndex={currentSlide.pageIndex}
                 totalPages={currentSlide.totalPages}
               />
