@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
-  Tv2, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2,
+  Tv2, Play, Pause,
   Clock, PackageX, AlertCircle, ShieldCheck, Users,
   TrendingDown, ChevronLeft, ChevronRight, Activity, Monitor,
-  ArrowLeft, Zap, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
+  ArrowLeft, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, CartesianGrid } from 'recharts';
@@ -1010,7 +1010,6 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1033,21 +1032,6 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
     const t = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-
-  // ── Fullscreen ──
-  useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  };
 
   // ── Audio Context (lazy init) ──
   const getOrCreateAudioCtx = useCallback(() => {
