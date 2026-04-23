@@ -598,24 +598,22 @@ function SlidePrescricoesHora() {
       </div>
 
       {/* Gráfico Principal */}
-      <div className="flex-1 min-h-[500px] bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={PRESC_DATA} margin={{ top: 30, right: 30, left: 10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={true} />
+      <div className="h-[550px] w-full bg-[#fdfdfd] border border-slate-200 rounded-2xl p-4 shadow-sm">
+        <ResponsiveContainer width="99%" height={500}>
+          <LineChart data={PRESC_DATA} margin={{ top: 40, right: 40, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis 
               dataKey="hour" 
               stroke="#64748b" 
-              fontSize={12} 
-              axisLine={true}
-              tickLine={true}
+              fontSize={14} 
+              fontWeight="bold"
               dy={10}
             />
             <YAxis 
               stroke="#64748b" 
-              fontSize={12} 
-              axisLine={true}
-              tickLine={true}
-              domain={[0, 60]}
+              fontSize={14} 
+              fontWeight="bold"
+              domain={[0, 65]}
             />
             <Tooltip
               contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
@@ -623,17 +621,17 @@ function SlidePrescricoesHora() {
             <Line 
               type="monotone" 
               dataKey="val" 
-              stroke="#4f46e5" 
-              strokeWidth={2}
-              dot={{ r: 6, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
-              activeDot={{ r: 8 }}
-              animationDuration={2000}
+              stroke="#2563eb" 
+              strokeWidth={3}
+              dot={{ r: 7, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+              activeDot={{ r: 9 }}
+              isAnimationActive={false}
             >
               <LabelList 
                 dataKey="val" 
                 position="top" 
                 offset={15} 
-                style={{ fill: '#334155', fontSize: '14px', fontWeight: 'bold' }} 
+                style={{ fill: '#1e293b', fontSize: '16px', fontWeight: '900' }} 
               />
             </Line>
           </LineChart>
