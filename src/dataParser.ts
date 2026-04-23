@@ -80,7 +80,8 @@ export interface TVValidadeItem {
   diasParaVencer: number;
   quantidade: number;
   estoqueAtual: number;
-  estoqueNum: string; // Código do estoque (332, 336, 501...)
+  estoqueNum: string;  // Código do estoque (332, 336, 501...)
+  estoqueNome: string; // Nome do estoque
   valorTotal: number;
 }
 
@@ -356,6 +357,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   if (contValidCsv && contValidCsv.length > 500) {
     const contParsed = Papa.parse<{ [key: string]: string }>(contValidCsv, { header: false, delimiter: ',', skipEmptyLines: true }).data;
     let currentEstoqueNum = "";
+    let currentEstoqueNome = "";
     
     contParsed.forEach((row: any) => {
       const cols = Object.values(row) as string[];
@@ -363,7 +365,8 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
       
       // Identifica Estoque
       if (raw[1] === "Estoque:") {
-        currentEstoqueNum = raw[5] || "";
+        currentEstoqueNum = (raw[4] || raw[5] || "").trim();
+        currentEstoqueNome = (raw[6] || raw[7] || "").trim();
       }
 
       // Identifica Linha de Produto
@@ -396,6 +399,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
           quantidade,
           estoqueAtual: quantidade,
           estoqueNum: currentEstoqueNum,
+          estoqueNome: currentEstoqueNome,
           valorTotal: valorTotal
         });
       }

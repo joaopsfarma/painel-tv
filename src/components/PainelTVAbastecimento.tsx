@@ -3,7 +3,8 @@ import {
   Tv2, Play, Pause,
   Clock, PackageX, AlertCircle, ShieldCheck, Users,
   TrendingDown, ChevronLeft, ChevronRight, Activity, Monitor,
-  ArrowLeft, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
+  ArrowLeft, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon,
+  Maximize2, Minimize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, CartesianGrid } from 'recharts';
@@ -236,14 +237,14 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
   const sc = statusConfig[healthStatus];
 
   return (
-    <div className="flex flex-col gap-8 h-full p-2">
+    <div className="flex flex-col gap-6 h-full p-2">
       {/* Status global - Estilo Rede Américas */}
       <div className={`flex items-center justify-center gap-4 py-6 rounded-[3rem] border-4 shadow-xl ${sc.bg} ${sc.border}`}>
         {healthStatus === 'OK'
           ? <ShieldCheck className={`w-12 h-12 ${sc.color}`} />
           : <AlertCircle className={`w-12 h-12 ${sc.color} animate-pulse`} />
         }
-        <span className={`text-5xl font-black tracking-tighter uppercase ${sc.color}`}>{sc.label}</span>
+        <span className={`text-6xl font-black tracking-tighter uppercase ${sc.color}`}>{sc.label}</span>
       </div>
 
       {/* KPI Cards Principal */}
@@ -292,35 +293,28 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
           </div>
           <div className="text-[10px] text-slate-500 mt-1">Meta: 15–30 dias</div>
         </div>
-        <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
-          <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Total de Itens</div>
-          <div className="text-3xl font-black text-purple-400">
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
+          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total de Itens</div>
+          <div className="text-3xl font-black text-slate-800">
             {kpis.total}
           </div>
-          <div className="text-[10px] text-slate-500 mt-1">Atualizado: {savedDate}</div>
+          <div className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">Última Sincronização</div>
         </div>
         {followUpKpis && (
           <>
-            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">OCs Follow Up</div>
-              <div className="text-3xl font-black text-violet-400">{followUpKpis.total}</div>
-              <div className="text-[10px] text-slate-500 mt-1">Ordens em acompanhamento</div>
+            <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">OCs Follow Up</div>
+              <div className="text-3xl font-black text-purple-600">{followUpKpis.total}</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Em Monitoramento</div>
             </div>
-            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">OCs Atrasadas</div>
-              <div className={`text-3xl font-black ${followUpKpis.atrasados > 0 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
+            <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">OCs Atrasadas</div>
+              <div className={`text-3xl font-black ${followUpKpis.atrasados > 0 ? 'text-red-600 animate-pulse' : 'text-emerald-500'}`}>
                 {followUpKpis.atrasados}
               </div>
-              <div className="text-[10px] text-slate-500 mt-1">
-                {followUpKpis.total > 0 ? `${((followUpKpis.atrasados / followUpKpis.total) * 100).toFixed(0)}% do total` : '—'}
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                {followUpKpis.total > 0 ? `${((followUpKpis.atrasados / followUpKpis.total) * 100).toFixed(0)}% atraso` : '—'}
               </div>
-            </div>
-            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Atraso Médio</div>
-              <div className={`text-3xl font-black ${followUpKpis.atrasoMedio > 7 ? 'text-red-400' : followUpKpis.atrasoMedio > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                {followUpKpis.atrasoMedio}<span className="text-lg"> d</span>
-              </div>
-              <div className="text-[10px] text-slate-500 mt-1">Dias de atraso médio</div>
             </div>
           </>
         )}
@@ -333,57 +327,69 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
 
 function ItemCard({ item, theme }: { item: TVItem; theme: 'red' | 'orange' | 'amber' }) {
   const colors = {
-    red:    { border: 'border-l-red-500',    bg: 'bg-red-500/5',    badge: 'bg-red-500/20 text-red-300 border-red-500/40',    cov: 'text-red-400' },
-    orange: { border: 'border-l-orange-500', bg: 'bg-orange-500/5', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40', cov: 'text-orange-400' },
-    amber:  { border: 'border-l-amber-500',  bg: 'bg-amber-500/5',  badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',  cov: 'text-amber-400' },
+    red:    { border: 'border-l-red-600',    bg: 'bg-red-50/50',    badge: 'bg-red-50 text-red-600 border-red-100',    cov: 'text-red-600' },
+    orange: { border: 'border-l-orange-500', bg: 'bg-orange-50/50', badge: 'bg-orange-50 text-orange-600 border-orange-100', cov: 'text-orange-600' },
+    amber:  { border: 'border-l-amber-500',  bg: 'bg-amber-50/50',  badge: 'bg-amber-50 text-amber-600 border-amber-100',  cov: 'text-amber-600' },
   };
   const c = colors[theme];
 
   const covDisplay = item.emFalta
-    ? <span className="text-red-400 font-black text-2xl animate-pulse">RUPTURA</span>
+    ? <span className="text-red-600 font-black text-4xl animate-pulse tracking-tighter">FALTA</span>
     : item.cobertura >= 999
-      ? <span className="text-slate-400 text-2xl">—</span>
-      : <span className={`${c.cov} font-black text-3xl`}>{Math.round(item.cobertura)}<span className="text-base font-medium"> dias</span></span>;
+      ? <span className="text-slate-300 text-3xl font-black">—</span>
+      : <span className={`${c.cov} font-black text-5xl tracking-tighter`}>{Math.round(item.cobertura)}<span className="text-sm font-bold uppercase ml-1">dias</span></span>;
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
-      className={`relative flex items-stretch bg-slate-800/70 rounded-xl border border-slate-700/50 border-l-4 ${c.border} overflow-hidden`}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className={`relative flex items-stretch bg-white rounded-[1.5rem] border-2 border-slate-50 border-l-[10px] ${c.border} overflow-hidden shadow-xl shadow-slate-100 hover:shadow-2xl transition-all`}
     >
-      {item.emFalta && <div className={`absolute inset-0 ${c.bg} animate-pulse pointer-events-none`} />}
       <div className="flex-1 p-4 relative z-10">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-xs font-mono text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded">{item.codItem}</span>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-widest">{item.codItem}</span>
               {item.curvABC && (
-                <span className="text-xs font-bold text-slate-400">Curva {item.curvABC}</span>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${item.curvABC === 'A' ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-500'}`}>CURVA {item.curvABC}</span>
               )}
             </div>
-            <p className="text-white font-black text-xl leading-snug line-clamp-2 mt-1">{toTitleCase(item.descItem)}</p>
-            <p className="text-slate-400 text-sm mt-1 truncate">{toTitleCase(item.fornec)}</p>
+            <p className="text-slate-900 font-black text-lg leading-tight uppercase line-clamp-2">{toTitleCase(item.descItem)}</p>
+            <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1 truncate">{toTitleCase(item.fornec)}</p>
           </div>
-          <div className="flex-shrink-0 text-right">
+          <div className="flex-shrink-0 text-right flex flex-col items-end">
+            <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cobertura</div>
             {covDisplay}
             {item.diasAtraso > 0 && (
-              <div className={`text-base font-semibold mt-1 border rounded px-2 py-1 ${c.badge}`}>
+              <div className={`text-[9px] font-black mt-1 border-2 rounded-full px-4 py-1 uppercase tracking-widest ${c.badge}`}>
                 {item.diasAtraso} dias atraso
               </div>
             )}
           </div>
         </div>
-        <div className="flex items-center justify-between mt-4 text-sm text-slate-500 border-t border-slate-700/50 pt-3">
-          <div className="flex gap-4">
-             <span>Estoque: <strong className="text-slate-300 text-base">{item.estoqDisp}</strong></span>
-             {item.ocNum && <span>OC: <strong className="text-slate-300 text-base">{item.ocNum}</strong></span>}
-             {item.ocEntrega && <span>Entrega: <strong className="text-slate-300 text-base">{item.ocEntrega}</strong></span>}
+        <div className="flex items-center justify-between mt-4 text-[9px] font-black uppercase tracking-widest border-t-2 border-slate-50 pt-4">
+          <div className="flex gap-6">
+             <div className="flex flex-col">
+               <span className="text-slate-400">Estoque</span>
+               <span className="text-slate-800 text-base tracking-tighter">{item.estoqDisp} UN</span>
+             </div>
+             {item.ocNum && (
+               <div className="flex flex-col">
+                 <span className="text-slate-400">Pedido OC</span>
+                 <span className="text-purple-600 text-base tracking-tighter">{item.ocNum}</span>
+               </div>
+             )}
+             {item.ocEntrega && (
+               <div className="flex flex-col">
+                 <span className="text-slate-400">Previsão</span>
+                 <span className="text-emerald-500 text-base tracking-tighter">{item.ocEntrega}</span>
+               </div>
+             )}
           </div>
           <div className="flex gap-2">
-             {item.altoCusto && <span className="text-indigo-400 font-bold tracking-wide uppercase px-2 py-0.5 bg-indigo-500/10 rounded">• ALTO CUSTO</span>}
-             {item.importado && <span className="text-blue-400 font-bold tracking-wide uppercase px-2 py-0.5 bg-blue-500/10 rounded">• IMPORTADO</span>}
+             {item.altoCusto && <span className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100">• ALTO CUSTO</span>}
           </div>
         </div>
       </div>
@@ -397,9 +403,9 @@ function ItemListSlide({ items, theme, subtitle }: {
   subtitle: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 h-full">
-      <p className="text-slate-400 text-sm font-medium">{subtitle}</p>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1">
+    <div className="flex flex-col gap-4 h-full p-2">
+      <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">{subtitle}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
         {items.map((item, idx) => (
           <ItemCard key={`${item.codItem}-${idx}`} item={item} theme={theme} />
         ))}
@@ -416,15 +422,15 @@ function SupplierSlide({ suppliers }: { suppliers: TVSupplier[] }) {
     .slice(0, 8);
 
   return (
-    <div className="flex flex-col gap-3 h-full">
-      <p className="text-slate-400 text-sm font-medium">Ranking por risco assistencial — top {sorted.length} fornecedores</p>
-      <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-4 h-full p-2">
+      <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">Ranking por Risco Assistencial — Principais Fornecedores</p>
+      <div className="flex flex-col gap-3 flex-1 overflow-hidden">
         {sorted.map((sup, idx) => {
           const status = sup.emFalta > 0 ? 'CRÍTICO' : sup.atrasados > 0 ? 'ATENÇÃO' : 'OK';
-          const statusColors = {
-            CRÍTICO: 'bg-red-500/20 text-red-300 border-red-500/40',
-            ATENÇÃO: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-            OK:      'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          const statusClasses = {
+            CRÍTICO: 'bg-red-50 border-red-100 text-red-600',
+            ATENÇÃO: 'bg-amber-50 border-amber-100 text-amber-600',
+            OK:      'bg-emerald-50 border-emerald-100 text-emerald-600',
           };
           const pontColor = sup.pontualidade >= 90 ? 'bg-emerald-500' : sup.pontualidade >= 70 ? 'bg-amber-500' : 'bg-red-500';
 
@@ -434,38 +440,36 @@ function SupplierSlide({ suppliers }: { suppliers: TVSupplier[] }) {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05, duration: 0.3 }}
-              className="flex items-center gap-4 bg-slate-800/70 rounded-xl border border-slate-700/50 px-4 py-3"
+              className="flex items-center gap-6 bg-white rounded-[1.5rem] border-2 border-slate-50 px-6 py-4 shadow-sm hover:shadow-md transition-all"
             >
-              {/* Rank */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${idx === 0 ? 'bg-red-500/30 text-red-300' : idx === 1 ? 'bg-orange-500/30 text-orange-300' : 'bg-slate-700 text-slate-400'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-black flex-shrink-0 ${idx === 0 ? 'bg-red-600 text-white shadow-lg shadow-red-100' : idx === 1 ? 'bg-amber-500 text-white shadow-lg shadow-amber-100' : 'bg-slate-100 text-slate-400'}`}>
                 {idx + 1}
               </div>
 
-              {/* Nome */}
               <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm truncate">{toTitleCase(sup.nome)}</p>
-                <p className="text-slate-500 text-[11px]">{sup.total} itens · {sup.diasAtrasoMedio.toFixed(0)}d atraso médio</p>
+                <p className="text-slate-900 font-black text-base truncate uppercase">{toTitleCase(sup.nome)}</p>
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">{sup.total} itens sob monitoramento</p>
               </div>
 
-              {/* Pontualidade */}
-              <div className="w-24 flex-shrink-0">
-                <div className="text-[10px] text-slate-500 mb-1">Pontualidade</div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-48 flex-shrink-0">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pontualidade</span>
+                  <span className={`text-xs font-black ${sup.pontualidade >= 70 ? 'text-emerald-600' : 'text-red-600'}`}>{sup.pontualidade.toFixed(0)}%</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full ${pontColor} transition-all`} style={{ width: `${sup.pontualidade}%` }} />
                 </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{sup.pontualidade.toFixed(0)}%</div>
               </div>
 
-              {/* Rupturas */}
-              {sup.emFalta > 0 && (
-                <div className="bg-red-500/20 text-red-300 border border-red-500/40 rounded-lg px-2 py-1 text-xs font-bold flex-shrink-0">
-                  {sup.emFalta} ruptura{sup.emFalta > 1 ? 's' : ''}
+              <div className="flex items-center gap-3">
+                {sup.emFalta > 0 && (
+                  <div className="bg-red-600 text-white font-black px-4 py-1.5 rounded-full text-[10px] uppercase shadow-lg shadow-red-100">
+                    {sup.emFalta} RUPTURA{sup.emFalta > 1 ? 'S' : ''}
+                  </div>
+                )}
+                <div className={`px-4 py-1.5 rounded-full border-2 text-[10px] font-black tracking-[0.1em] ${statusClasses[status]}`}>
+                  {status}
                 </div>
-              )}
-
-              {/* Status */}
-              <div className={`px-2.5 py-1 rounded-lg border text-xs font-bold flex-shrink-0 ${statusColors[status]}`}>
-                {status}
               </div>
             </motion.div>
           );
@@ -525,19 +529,19 @@ function SlideAbcOficial({ abcItems, abc }: { abcItems: TVAbcItem[]; abc: ABCSum
 
       <div className="flex gap-4 flex-1 min-h-0 mt-2">
         {/* Gráfico Rosca */}
-        <div className="w-[30%] bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center">
-          <p className="text-sm font-bold text-slate-300 uppercase mb-2">Distribuição Financeira</p>
-          <div className="flex-1 w-full min-h-[200px]">
+        <div className="w-[30%] bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 flex flex-col items-center shadow-2xl shadow-slate-200/50">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Distribuição Financeira</p>
+          <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={110} paddingAngle={8} dataKey="value" stroke="none">
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
                 <Tooltip 
                   formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
-                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#fff', border: 'none', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -545,27 +549,29 @@ function SlideAbcOficial({ abcItems, abc }: { abcItems: TVAbcItem[]; abc: ABCSum
         </div>
 
         {/* Lista Top A */}
-        <div className="w-[70%] bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col">
-          <p className="text-sm font-bold text-red-400 uppercase mb-3 flex items-center justify-between">
+        <div className="w-[70%] bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 flex flex-col shadow-2xl shadow-slate-200/50">
+          <p className="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
             <span>Principais Ofensores - Classe A</span>
-            <span className="text-xs text-slate-400 font-normal">Top 5 itens representam maior custo do hospital</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Top 5 itens representam maior custo</span>
           </p>
           
-          <div className="flex-1 overflow-hidden flex flex-col justify-between">
+          <div className="flex-1 overflow-hidden flex flex-col gap-4">
             {topA.map((item, idx) => (
-              <div key={item.cod} className="bg-slate-900/50 border border-slate-700/30 rounded flex justify-between p-3">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="bg-red-500/10 text-red-400 font-black text-lg w-8 h-8 rounded flex justify-center items-center flex-shrink-0">
+              <div key={item.cod} className="bg-slate-50/50 border border-slate-100 rounded-[1.5rem] flex justify-between p-5 transition-all hover:bg-white hover:shadow-md">
+                <div className="flex items-center gap-4 overflow-hidden">
+                  <div className="bg-red-600 text-white font-black text-xl w-12 h-12 rounded-2xl flex justify-center items-center flex-shrink-0 shadow-lg shadow-red-100">
                     {idx + 1}
                   </div>
-                  <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-white font-bold text-sm truncate">{toTitleCase(item.produto)}</p>
-                    <p className="text-xs text-slate-400 mt-1">Cód: {item.cod} | {item.qtdConsumo} un consumidas</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-900 font-extrabold text-base truncate uppercase">{toTitleCase(item.produto)}</p>
+                    <p className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-widest">
+                      Cód: {item.cod} | {item.qtdConsumo} un consumidas
+                    </p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 flex flex-col justify-center">
-                  <p className="text-red-400 font-black text-lg">R$ {item.vlCustoPeriodo.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-                  <p className="text-xs text-slate-500 font-semibold">{item.percAcum.toFixed(1)}% do acumulado</p>
+                  <p className="text-3xl font-black text-slate-800 tracking-tighter">R$ {item.vlCustoPeriodo.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{item.percAcum.toFixed(1)}% DO ACUMULADO</p>
                 </div>
               </div>
             ))}
@@ -666,12 +672,14 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
   const page = items.slice(pageIndex * ITEMS_PER_SLIDE, (pageIndex + 1) * ITEMS_PER_SLIDE);
 
   return (
-    <div className="flex flex-col gap-3 h-full">
-      <p className="text-slate-400 text-sm font-medium">
-        {items.length} ordem{items.length !== 1 ? 'ns' : ''} de compra em atraso — Acompanhamento Follow Up
-        {totalPages > 1 && <span className="ml-2 text-slate-600">· Pág. {pageIndex + 1}/{totalPages}</span>}
-      </p>
-      <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-4 h-full p-2">
+      <div className="flex justify-between items-center mb-2">
+        <p className="text-red-600 text-xs font-black uppercase tracking-[0.2em]">
+          {items.length} Ordens de Compra em Atraso — Acompanhamento Follow Up
+        </p>
+        {totalPages > 1 && <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Pág. {pageIndex + 1}/{totalPages}</span>}
+      </div>
+      <div className="flex flex-col gap-3 flex-1 overflow-hidden">
         {page.map((item, idx) => {
           const isCritical = item.delayDays > 7;
           return (
@@ -681,45 +689,37 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3, delay: idx * 0.04, ease: 'easeOut' }}
-              className={`flex items-center gap-4 rounded-xl border px-4 py-3 ${
-                isCritical
-                  ? 'bg-red-500/10 border-red-500/40 border-l-4 border-l-red-500'
-                  : 'bg-amber-500/8 border-amber-500/30 border-l-4 border-l-amber-500'
+              className={`flex items-center gap-6 bg-white rounded-[1.5rem] border-2 px-6 py-4 shadow-sm hover:shadow-md transition-all ${
+                isCritical ? 'border-red-100' : 'border-amber-100'
               }`}
             >
-              {/* Dias de atraso */}
-              <div className={`flex-shrink-0 w-16 text-center ${isCritical ? 'text-red-400' : 'text-amber-400'}`}>
-                <div className={`text-2xl font-black ${isCritical ? 'animate-pulse' : ''}`}>{item.delayDays}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">dias</div>
+              <div className={`flex-shrink-0 w-20 text-center flex flex-col items-center justify-center`}>
+                <div className={`text-4xl font-black tracking-tighter ${isCritical ? 'text-red-600 animate-pulse' : 'text-amber-500'}`}>{item.delayDays}</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dias</div>
               </div>
 
-              {/* Informações do item */}
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm leading-snug truncate">{item.itemName}</p>
-                <p className="text-slate-400 text-xs mt-0.5 truncate">
-                  OC {item.ocNumber} · {item.supplier}
-                </p>
+                <p className="text-slate-900 font-black text-base truncate uppercase">{item.itemName}</p>
+                <div className="flex gap-4 mt-1">
+                   <p className="text-purple-600 text-[10px] font-black uppercase tracking-widest">OC {item.ocNumber}</p>
+                   <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest truncate max-w-[200px]">Fornecedor: {item.supplier}</p>
+                </div>
               </div>
 
-              {/* Qtd pendente */}
-              <div className="flex-shrink-0 text-right">
-                <div className="text-slate-300 text-sm font-semibold">{item.pendingQty}</div>
-                <div className="text-[10px] text-slate-500">qtd pend.</div>
+              <div className="flex-shrink-0 text-right px-6 border-l-2 border-slate-50">
+                <div className="text-slate-800 text-2xl font-black tracking-tighter">{item.pendingQty}</div>
+                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Pendentes</div>
               </div>
 
-              {/* Data de entrega */}
               {item.deliveryDate && (
-                <div className="flex-shrink-0 text-right">
-                  <div className="text-xs text-slate-500">Previsão</div>
-                  <div className="text-xs text-slate-400 font-semibold">{item.deliveryDate}</div>
+                <div className="flex-shrink-0 text-right px-6 border-l-2 border-slate-50">
+                  <div className="text-slate-800 text-lg font-black tracking-tighter">{item.deliveryDate}</div>
+                  <div className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Previsão</div>
                 </div>
               )}
 
-              {/* Badge status */}
-              <div className={`flex-shrink-0 px-2.5 py-1 rounded-lg border text-xs font-bold ${
-                isCritical
-                  ? 'bg-red-500/20 text-red-300 border-red-500/40'
-                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+              <div className={`flex-shrink-0 px-4 py-1.5 rounded-full border-2 text-[10px] font-black tracking-widest ${
+                isCritical ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-50 border-amber-100 text-amber-600'
               }`}>
                 {isCritical ? 'CRÍTICO' : 'ATRASADO'}
               </div>
@@ -830,7 +830,7 @@ function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], k
                     <div className="flex gap-4 text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest">
                       <span className="text-red-500">Expira: {item.validadeStr}</span>
                       <span>Lote: {item.lote}</span>
-                      <span className="text-purple-600">Almox: {item.estoqueNum}</span>
+                      <span className="text-purple-600">Estoq: {item.estoqueNome} ({item.estoqueNum})</span>
                     </div>
                   </div>
                 </div>
@@ -856,7 +856,7 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
   const totalValor = consumos.reduce((s, c) => s + c.vlCustoPeriodo, 0);
   const totalPecas = consumos.reduce((s, c) => s + c.qtdConsumo, 0);
   
-  const pieColors = ['#ef4444', '#f59e0b', '#64748b'];
+  const pieColors = ['#7c3aed', '#f59e0b', '#64748b'];
   const pieData = abc ? [
     { name: 'Classe A', value: abc.valA || 0 },
     { name: 'Classe B', value: abc.valB || 0 },
@@ -864,46 +864,40 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
   ] : [];
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-6 h-full p-2">
       {/* KPIs Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-indigo-500/15 border border-indigo-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-indigo-300 font-bold uppercase">Custo Total Período</p>
-          <p className="text-2xl font-black text-indigo-400">R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-        </div>
-        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-purple-300 font-bold uppercase">Itens Distintos</p>
-          <p className="text-2xl font-black text-purple-400">{consumos.length}</p>
-        </div>
-        <div className="bg-emerald-500/15 border border-emerald-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-emerald-300 font-bold uppercase">Peças Consumidas</p>
-          <p className="text-2xl font-black text-emerald-400">{totalPecas.toLocaleString('pt-BR')}</p>
-        </div>
-        <div className="bg-amber-500/15 border border-amber-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-amber-300 font-bold uppercase">Custo Médio/Item</p>
-          <p className="text-2xl font-black text-amber-400">R$ {consumos.length > 0 ? (totalValor / consumos.length).toFixed(2) : '0'}</p>
-        </div>
-        <div className="bg-rose-500/15 border border-rose-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-rose-300 font-bold uppercase">Ticket Médio/Peça</p>
-          <p className="text-2xl font-black text-rose-400">R$ {totalPecas > 0 ? (totalValor / totalPecas).toFixed(2) : '0'}</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { label: 'Custo Total Período', val: `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, color: 'text-purple-600', bg: 'border-purple-100 shadow-purple-50' },
+          { label: 'Itens Distintos', val: consumos.length, color: 'text-indigo-600', bg: 'border-indigo-100 shadow-indigo-50' },
+          { label: 'Peças Consumidas', val: totalPecas.toLocaleString('pt-BR'), color: 'text-emerald-600', bg: 'border-emerald-100 shadow-emerald-50' },
+          { label: 'Custo Médio/Item', val: `R$ ${consumos.length > 0 ? (totalValor / consumos.length).toFixed(0) : '0'}`, color: 'text-amber-600', bg: 'border-amber-100 shadow-amber-50' },
+          { label: 'Ticket Médio/Peça', val: `R$ ${totalPecas > 0 ? (totalValor / totalPecas).toFixed(2) : '0'}`, color: 'text-rose-600', bg: 'border-rose-100 shadow-rose-50' }
+        ].map(k => (
+          <div key={k.label} className={`bg-white border-2 rounded-[1.5rem] p-6 text-center shadow-xl ${k.bg}`}>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">{k.label}</p>
+            <p className={`text-3xl font-black ${k.color} tracking-tighter`}>{k.val}</p>
+          </div>
+        ))}
       </div>
+
       {/* Charts */}
-      <div className="flex gap-4 flex-1 min-h-0">
-        <div className="flex-1 flex flex-col gap-2">
-          <p className="text-slate-400 text-sm font-bold uppercase">Top 10 Maior Custo</p>
-          <div className="flex-1 min-h-0 bg-slate-800/30 p-2 rounded-xl border border-slate-700/50">
+      <div className="flex gap-6 flex-1 min-h-0">
+        <div className="flex-1 flex flex-col gap-4 bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 shadow-2xl shadow-slate-100">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Top 10 Maior Custo do Período</p>
+          <div className="flex-1 min-h-0 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={top10} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" hide />
-                <YAxis dataKey="produto" type="category" width={280} tick={{ fontSize: 11, fill: '#cbd5e1' }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="produto" type="category" width={320} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
                 <Tooltip 
                    formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
-                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                   contentStyle={{ backgroundColor: '#fff', border: 'none', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
-                <Bar dataKey="vlCustoPeriodo" fill="#6366f1" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="vlCustoPeriodo" fill="#7c3aed" radius={[0, 10, 10, 0]}>
                   {top10.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#6366f1'} />
+                    <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#7c3aed'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -911,25 +905,25 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
           </div>
         </div>
         {abc && (abc.A + abc.B + abc.C) > 0 && (
-          <div className="w-[300px] flex flex-col bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-             <p className="text-slate-400 text-sm font-bold text-center mb-2 uppercase">Curva ABC</p>
-             <div className="flex-1 w-full min-h-[200px]">
+          <div className="w-[350px] flex flex-col bg-white border-2 border-slate-50 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-100">
+             <p className="text-slate-400 text-xs font-black text-center mb-8 uppercase tracking-[0.2em]">Distribuição Curva ABC</p>
+             <div className="flex-1 w-full min-h-[250px]">
                <ResponsiveContainer width="100%" height="100%">
                  <PieChart>
-                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={5} dataKey="value" stroke="none">
+                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={8} dataKey="value" stroke="none">
                      {pieData.map((_, index) => (
                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                      ))}
                    </Pie>
-                   <Tooltip formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`} contentStyle={{ backgroundColor: '#1e293b', border: 'none' }} />
-                   <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1', fontSize: '12px' }} />
+                   <Tooltip formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`} contentStyle={{ backgroundColor: '#fff', border: 'none', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                   <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ paddingTop: '20px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '10px' }} />
                  </PieChart>
                </ResponsiveContainer>
              </div>
-             <div className="grid grid-cols-3 gap-2 mt-2">
-               <div className="text-center"><span className="text-red-400 font-black text-lg">{abc.A}</span><br/><span className="text-[10px] text-slate-500">itens A</span></div>
-               <div className="text-center"><span className="text-amber-400 font-black text-lg">{abc.B}</span><br/><span className="text-[10px] text-slate-500">itens B</span></div>
-               <div className="text-center"><span className="text-slate-400 font-black text-lg">{abc.C}</span><br/><span className="text-[10px] text-slate-500">itens C</span></div>
+             <div className="grid grid-cols-3 gap-3 mt-6 border-t-2 border-slate-50 pt-6">
+               <div className="text-center"><span className="text-red-500 font-black text-2xl tracking-tighter">{abc.A}</span><br/><span className="text-[10px] font-black text-slate-400 uppercase">Itens A</span></div>
+               <div className="text-center"><span className="text-amber-500 font-black text-2xl tracking-tighter">{abc.B}</span><br/><span className="text-[10px] font-black text-slate-400 uppercase">Itens B</span></div>
+               <div className="text-center"><span className="text-slate-900 font-black text-2xl tracking-tighter">{abc.C}</span><br/><span className="text-[10px] font-black text-slate-400 uppercase">Itens C</span></div>
              </div>
           </div>
         )}
@@ -944,60 +938,66 @@ function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { vali
   const page = validades.slice(pageIndex * ITEMS_PER_SLIDE, (pageIndex + 1) * ITEMS_PER_SLIDE);
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 flex justify-between items-center text-red-400">
-           <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Vence &lt; 30 Dias</p>
-             <p className="text-3xl font-black">{kpis?.itensVencendo30d || 0}</p>
-           </div>
-           <CalendarClock className="w-8 h-8 opacity-50" />
-        </div>
-        <div className="bg-amber-500/20 border border-amber-500/40 rounded-xl p-3 flex justify-between items-center text-amber-400">
-           <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Vence &lt; 90 Dias</p>
-             <p className="text-3xl font-black">{kpis?.itensVencendo90d || 0}</p>
-           </div>
-           <CalendarClock className="w-7 h-7 opacity-50" />
-        </div>
-        <div className="bg-purple-500/20 border border-purple-500/40 rounded-xl p-3 flex justify-between items-center text-purple-400">
-           <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Total Lotes</p>
-             <p className="text-3xl font-black">{kpis?.totalLotes || 0}</p>
-           </div>
-        </div>
-        <div className="bg-violet-500/20 border border-violet-500/40 rounded-xl p-3 flex justify-between items-center text-violet-400">
-           <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Produtos Distintos</p>
-             <p className="text-3xl font-black">{kpis?.totalProdutosEstoque || 0}</p>
-           </div>
-        </div>
+    <div className="flex flex-col gap-6 h-full p-2">
+      {/* KPIs Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Lotes em Análise', val: kpis?.totalLotes || 0, color: 'text-slate-900', bg: 'border-slate-100 shadow-slate-50' },
+          { label: 'Vencendo em 30 Dias', val: kpis?.itensVencendo30d || 0, color: 'text-red-600', bg: 'border-red-100 shadow-red-50' },
+          { label: 'Vencendo em 90 Dias', val: kpis?.itensVencendo90d || 0, color: 'text-amber-500', bg: 'border-amber-100 shadow-amber-50' },
+          { label: 'Total Itens Est.', val: kpis?.totalProdutosEstoque || 0, color: 'text-emerald-600', bg: 'border-emerald-100 shadow-emerald-50' }
+        ].map(k => (
+          <div key={k.label} className={`bg-white border-2 rounded-[2rem] p-8 text-center shadow-2xl ${k.bg}`}>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">{k.label}</p>
+            <p className={`text-4xl font-black ${k.color} tracking-tighter`}>{k.val}</p>
+          </div>
+        ))}
       </div>
-      
-      <p className="text-slate-400 text-sm font-bold uppercase">Lotes Mais Próximos de Expirar {totalPages > 1 && `(Pag ${pageIndex+1}/${totalPages})`}</p>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1">
-        {page.map((v, idx) => {
-          const isCritical = v.diasParaVencer <= 30;
-          return (
-            <motion.div key={`${v.produto}-${v.lote}-${idx}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }} className={`flex gap-3 p-3 rounded-lg border ${isCritical ? 'bg-red-500/10 border-red-500/40' : 'bg-amber-500/10 border-amber-500/40'}`}>
-               <div className={`flex flex-col items-center justify-center p-2 rounded-md ${isCritical ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'} min-w-[70px]`}>
-                 <span className="text-2xl font-black">{v.diasParaVencer}</span>
-                 <span className="text-[10px] font-bold uppercase">Dias</span>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
+        {page.map((item, idx) => (
+          <motion.div
+            key={`${item.produto}-${idx}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.05 }}
+            className={`bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 flex items-center gap-8 shadow-2xl shadow-slate-200/50 transition-all hover:scale-[1.02]`}
+          >
+            {/* Countdown Badge */}
+            <div className={`w-24 h-24 rounded-[2rem] flex flex-col items-center justify-center p-4 shadow-xl ${item.diasParaVencer <= 30 ? 'bg-red-600 shadow-red-100' : item.diasParaVencer <= 90 ? 'bg-amber-500 shadow-amber-100' : 'bg-emerald-500 shadow-emerald-100'}`}>
+               <span className="text-4xl font-black text-white leading-none tracking-tighter">{item.diasParaVencer}</span>
+               <span className="text-[10px] font-black text-white/80 uppercase mt-1">Dias</span>
+            </div>
+
+            <div className="flex-1 min-w-0">
+               <p className="text-slate-900 font-black text-xl leading-tight uppercase truncate">{toTitleCase(item.produto)}</p>
+               <div className="flex flex-wrap gap-4 mt-3">
+                  <div className="bg-slate-50 px-4 py-2 rounded-xl flex flex-col">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lote</span>
+                    <span className="text-slate-700 font-black text-sm">{item.lote}</span>
+                  </div>
+                  <div className="bg-slate-50 px-4 py-2 rounded-xl flex flex-col">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Validade</span>
+                    <span className="text-slate-700 font-black text-sm">{item.validadeStr}</span>
+                  </div>
+                  <div className="bg-purple-50 px-4 py-2 rounded-xl flex flex-col border border-purple-100">
+                    <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Almoxarifado</span>
+                    <span className="text-purple-600 font-black text-sm uppercase">{item.estoqueNome || 'ALMOXARIFADO'} ({item.estoqueNum})</span>
+                  </div>
                </div>
-               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                 <p className="text-white text-base font-black truncate">{toTitleCase(v.produto)}</p>
-                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-slate-400">
-                   <span>Lote: <strong className="text-slate-300">{v.lote}</strong></span>
-                   <span>Vence: <strong className="text-slate-300">{v.validadeStr}</strong></span>
-                   <span>Qtd: <strong className="text-slate-300">{v.quantidade}</strong></span>
-                   {v.estoqueNum && <span>Est: <strong className="text-cyan-400 text-base">{v.estoqueNum}</strong></span>}
-                   <span>Estoque Total: <strong className="text-emerald-400 text-base">{v.estoqueAtual.toLocaleString('pt-BR')}</strong></span>
-                 </div>
+            </div>
+
+            <div className="text-right flex flex-col items-end gap-2 pr-4 border-l-2 border-slate-50 pl-8">
+               <div className="flex flex-col">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Qtd Est.</span>
+                 <span className="text-3xl font-black text-slate-800 tracking-tighter">{item.quantidade}</span>
                </div>
-            </motion.div>
-          )
-        })}
+               <div className="bg-slate-900 text-white font-black px-4 py-2 rounded-xl text-sm shadow-xl shadow-slate-200">
+                  R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+               </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
@@ -1011,8 +1011,24 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFs);
+    return () => document.removeEventListener('fullscreenchange', handleFs);
+  }, []);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevSlideTypeRef = useRef<SlideType | null>(null);
 
@@ -1365,8 +1381,14 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
     ];
 
     return (
-      <div ref={containerRef} className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center font-sans p-8">
-        <div className="w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl border-2 border-purple-100 p-16 text-center relative overflow-hidden">
+      <div ref={containerRef} className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center font-sans p-4">
+        <button 
+          onClick={toggleFullscreen} 
+          className="absolute top-8 right-8 p-4 rounded-2xl bg-white shadow-xl border border-slate-100 text-slate-400 hover:text-purple-600 transition-all z-10"
+        >
+          {isFullscreen ? <Minimize2 className="w-8 h-8" /> : <Maximize2 className="w-8 h-8" />}
+        </button>
+        <div className="w-full h-full bg-white rounded-[3rem] shadow-2xl border-2 border-purple-100 p-24 text-center relative overflow-hidden flex flex-col items-center justify-center">
           {/* Decorações Américas */}
           <div className="absolute top-0 left-0 w-48 h-48 bg-purple-600/5 rounded-br-[100%] transition-all" />
           <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-tl-[100%] transition-all" />
@@ -1379,16 +1401,16 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
           <p className="text-2xl font-black text-purple-600 mb-2 uppercase tracking-[0.3em]">Rede Américas</p>
           <div className="h-2 w-32 bg-gradient-to-r from-purple-600 to-emerald-500 mx-auto mb-12 rounded-full" />
           
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16 w-full max-w-7xl">
             {alertBadges.slice(0, 4).map(b => (
-              <div key={b.label} className={`rounded-[2rem] border-2 p-8 flex flex-col items-center justify-center transition-all hover:scale-105 shadow-sm ${b.color}`}>
-                <div className="text-6xl font-black tracking-tighter mb-2">{b.value}</div>
-                <div className="text-xs font-black uppercase tracking-[0.2em] opacity-80">{b.label}</div>
+              <div key={b.label} className={`rounded-[3rem] border-2 p-12 flex flex-col items-center justify-center transition-all hover:scale-105 shadow-sm ${b.color}`}>
+                <div className="text-8xl font-black tracking-tighter mb-4">{b.value}</div>
+                <div className="text-sm font-black uppercase tracking-[0.3em] opacity-80">{b.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6 w-full max-w-2xl">
             <button
               onClick={handleStart}
               className="group relative w-full inline-flex items-center justify-center gap-6 bg-slate-900 hover:bg-black text-white font-black text-3xl py-10 rounded-[3rem] shadow-2xl transition-all active:scale-95"
@@ -1419,8 +1441,14 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
   if (isPlaying && healthStatus === 'OK' && slides.length <= 2) {
     return (
-      <div ref={containerRef} className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center font-sans gap-8 p-12 text-center">
-        <div className="bg-emerald-50 p-10 rounded-[3rem] border-4 border-emerald-500 shadow-2xl shadow-emerald-100">
+      <div ref={containerRef} className="min-h-screen w-full bg-[#f8fafc] flex flex-col items-center justify-center font-sans gap-12 p-24 text-center relative overflow-hidden">
+        <button 
+          onClick={toggleFullscreen} 
+          className="absolute top-8 right-8 p-4 rounded-2xl bg-white shadow-xl border border-slate-100 text-slate-400 hover:text-purple-600 transition-all"
+        >
+          {isFullscreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+        </button>
+        <div className="bg-emerald-50 p-16 rounded-[4rem] border-4 border-emerald-500 shadow-2xl shadow-emerald-100 animate-bounce">
            <ShieldCheck className="w-32 h-32 text-emerald-600 animate-pulse" />
         </div>
         <div>
@@ -1457,10 +1485,10 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans select-none text-slate-900"
+      className="h-screen w-screen bg-[#f3f4f6] flex flex-col font-sans select-none text-slate-900 overflow-hidden"
     >
       {/* ── HEADER LIGHT ── */}
-      <header className="bg-white border-b-2 border-purple-100 px-6 py-4 flex-shrink-0 shadow-sm relative z-10">
+      <header className="bg-white border-b-2 border-purple-100 px-6 py-3 flex-shrink-0 shadow-sm relative z-10">
         {/* Linha superior: info geral */}
         <div className="flex items-center justify-between mb-3 text-slate-400 font-bold uppercase tracking-widest text-[9px]">
           <div className="flex items-center gap-2">
@@ -1503,23 +1531,26 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
           </div>
 
           <div className="flex items-center gap-3">
+             <button title="Tela Cheia" onClick={toggleFullscreen} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 border border-slate-100 transition-all shadow-sm">
+                {isFullscreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+             </button>
              <button onClick={() => setSlideIndex(prev => (prev - 1 + slides.length) % slides.length)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 border border-slate-100 transition-all shadow-sm"><ChevronLeft className="w-6 h-6" /></button>
-             <button onClick={() => setIsPlaying(!isPlaying)} className="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xl shadow-purple-100">{isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}</button>
+             <button title={isPlaying ? "Pausar" : "Iniciar"} onClick={() => setIsPlaying(!isPlaying)} className="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xl shadow-purple-100">{isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}</button>
              <button onClick={() => setSlideIndex(prev => (prev + 1) % slides.length)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 border border-slate-100 transition-all shadow-sm"><ChevronRight className="w-6 h-6" /></button>
           </div>
         </div>
       </header>
 
       {/* ── CONTEÚDO DO SLIDE ── */}
-      <main className="flex-1 p-6 overflow-hidden">
+      <main className="flex-1 px-4 pb-4 pt-2 overflow-hidden flex flex-col">
         <AnimatePresence mode="popLayout">
           <motion.div
             key={`${slideIndex}-${currentSlide.type}-${currentSlide.pageIndex}`}
-            initial={{ opacity: 0, x: 60, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, x: -60, filter: 'blur(8px)', transition: { duration: 0.25 } }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="h-full"
+            initial={{ opacity: 0, scale: 0.98, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 1.02, filter: 'blur(8px)', transition: { duration: 0.2 } }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="flex-1 w-full"
           >
             {currentSlide.type === 'dashboard' && (
               <DashboardSlide kpis={tvData!.kpis} healthStatus={healthStatus} savedAt={tvData!.savedAt} followUpKpis={followUpKpis} />
