@@ -340,7 +340,8 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         diasParaVencer: diffDays,
         quantidade,
         estoqueAtual: currentEstoque,
-        estoqueNum
+        estoqueNum,
+        valorTotal: 0
       });
 
       if (diffDays >= 0) {
