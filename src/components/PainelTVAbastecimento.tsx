@@ -76,6 +76,7 @@ export interface TVValidadeItem {
   diasParaVencer: number;
   quantidade: number;
   estoqueAtual: number;
+  estoqueNum: string;
 }
 
 interface AbastecimentoTVData {
@@ -777,8 +778,9 @@ function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { vali
                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-slate-400">
                    <span>Lote: <strong className="text-slate-300">{v.lote}</strong></span>
                    <span>Vence: <strong className="text-slate-300">{v.validadeStr}</strong></span>
-                   <span>Qtd Lote: <strong className="text-slate-300">{v.quantidade}</strong></span>
-                   <span>Estoque: <strong className="text-emerald-400 text-base">{v.estoqueAtual.toLocaleString('pt-BR')}</strong></span>
+                   <span>Qtd: <strong className="text-slate-300">{v.quantidade}</strong></span>
+                   {v.estoqueNum && <span>Est: <strong className="text-cyan-400 text-base">{v.estoqueNum}</strong></span>}
+                   <span>Estoque Total: <strong className="text-emerald-400 text-base">{v.estoqueAtual.toLocaleString('pt-BR')}</strong></span>
                  </div>
                </div>
             </motion.div>

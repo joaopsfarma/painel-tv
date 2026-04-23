@@ -67,6 +67,7 @@ export interface TVValidadeItem {
   diasParaVencer: number;
   quantidade: number;
   estoqueAtual: number;
+  estoqueNum: string; // Código do estoque (332, 336, 501...)
 }
 
 export interface AbastecimentoTVData {
@@ -266,8 +267,11 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   };
 
   // 3️⃣ PARSE: CONFIG INSGITH (VALIDADE)
-  // O formato exato lido no PowerShell:
-  // Coluna 1=ProdCod, 2=Vazio, 3=ProdutoNome, 4=Vazio, 5=Unidade... dependendo de como as vírgulas batem.
+  // Estrutura das colunas RAW do CSV (separ. vírgula):
+  // cols[0]=vazio | cols[1]=CodProd | cols[2]=NomeProd | cols[3]=vazio | cols[4]=Unidade
+  // cols[5]=vazio | cols[6]=EstoqueAtual | cols[7]=vazio | cols[8]=Lote
+  // cols[9]=vazio | cols[10]=Validade(DD/MM/YYYY) | cols[11]=vazio | cols[12]=Est.(num estoque: 332,501...)
+  // cols[13]=vazio | cols[14]=QtKit | cols[15..17]=vazio | cols[18]=Quantidade
   const valParsed = Papa.parse<{ [key: string]: string }>(validadeCsv, { header: false, delimiter: ',', skipEmptyLines: true }).data;
 
   const validades: TVValidadeItem[] = [];
@@ -281,56 +285,44 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
 
   valParsed.forEach((row: any) => {
     const cols = Object.values(row) as string[];
-    const norm = cols.map(c => c.trim());
-    if (norm.length < 5) return;
+    if (cols.length < 11) return;
     
-    // Se a primeira coluna de dado (índice 1 no CSV raw) contiver texto não-data, pode ser um novo produto
-    const isCodigoProduto = norm[1] && !isNaN(parseBrNumber(norm[1]));
-    const isNomeProduto = norm[2] && norm[2].length > 3 && !/^\d{2}\/\d{2}\/\d{4}$/.test(norm[2]);
-    if (isCodigoProduto && isNomeProduto) {
-      currentProduct = norm[2];
-      // O campo "Estoque Atual" está na posição 6 (coluna original após Unidade)
-      // Busca nos campos o primeiro número com vírgula antes da data
-      for (let i = 3; i < norm.length; i++) {
-        const val = parseBrNumber(norm[i]);
-        if (val > 0 && !/\//.test(norm[i])) {
-          currentEstoque = val;
-          break;
-        }
+    const raw = cols.map(c => (c || '').trim());
+    
+    // Detecta linha de produto (contém código numérico no índice 1 e nome no índice 2)
+    if (raw[1] && /^\d+$/.test(raw[1]) && raw[2] && raw[2].length > 3) {
+      currentProduct = raw[2];
+      // Captura Estoque Atual (coluna 6)
+      if (raw[6]) {
+        currentEstoque = parseBrNumber(raw[6]);
       }
     }
 
-    // Procura por data válido no formato DD/MM/YYYY
-    const dateIdx = norm.findIndex(c => /^\d{2}\/\d{2}\/\d{4}$/.test(c));
-    if (dateIdx !== -1) {
-      const dataStr = norm[dateIdx];
+    // Detecta linha com validade (coluna 10 = DD/MM/YYYY)
+    const dataStr = raw[10];
+    if (dataStr && /^\d{2}\/\d{2}\/\d{4}$/.test(dataStr)) {
       const [dd, mm, yyyy] = dataStr.split('/');
       const dateObj = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
       const diffTime = dateObj.getTime() - hoje.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      // Lote costuma vir antes da data
-      const lote = norm[dateIdx - 2] || norm[dateIdx - 1] || 'S/L';
-      
-      // Quantidade no lote (costuma vir após a data ou no fim)
-      let qtd = 0;
-      for (let i = dateIdx + 1; i < norm.length; i++) {
-        if (norm[i] && /[0-9]/.test(norm[i])) {
-           qtd = parseBrNumber(norm[i]);
-        }
-      }
+      // Lote (coluna 8)
+      const lote = raw[8] || 'S/L';
+      // Número do estoque/almoxarifado (coluna 12) - ex: 332, 336, 501
+      const estoqueNum = raw[12] || '';
+      // Quantidade no lote (coluna 18)
+      const quantidade = raw[18] ? parseBrNumber(raw[18]) : 0;
 
-      const valItem: TVValidadeItem = {
+      validades.push({
         produto: currentProduct,
-        lote: lote, 
+        lote,
         validadeStr: dataStr,
         validadeData: dateObj,
         diasParaVencer: diffDays,
-        quantidade: qtd,
-        estoqueAtual: currentEstoque
-      };
-
-      validades.push(valItem);
+        quantidade,
+        estoqueAtual: currentEstoque,
+        estoqueNum
+      });
 
       if (diffDays >= 0) {
         if (diffDays <= 30) itensVencendo30d++;
