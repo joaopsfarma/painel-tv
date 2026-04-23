@@ -61,6 +61,19 @@ interface ABCSummary {
   valA: number; valB: number; valC: number;
 }
 
+interface TVAbcItem {
+  seq: number;
+  cod: string;
+  produto: string;
+  unidade: string;
+  custoUnit: number;
+  qtdConsumo: number;
+  vlCustoPeriodo: number;
+  custoAcumulado: number;
+  classe: 'A' | 'B' | 'C';
+  percAcum: number;
+}
+
 export interface TVConsumoItem {
   cod: string;
   produto: string;
@@ -85,6 +98,7 @@ interface AbastecimentoTVData {
   items: TVItem[];
   suppliers: TVSupplier[];
   abcSummary?: ABCSummary;
+  abcItems?: TVAbcItem[];
   consumos?: TVConsumoItem[];
   validades?: TVValidadeItem[];
   kpisValidade?: {
@@ -447,117 +461,101 @@ function SupplierSlide({ suppliers }: { suppliers: TVSupplier[] }) {
 
 // ── Sub-componente: Curva ABC ──────────────────────────────────────────────
 
-function CurvaABCSlide({ abc, savedAt }: { abc: ABCSummary; savedAt: string }) {
+function SlideAbcOficial({ abcItems, abc }: { abcItems: TVAbcItem[]; abc: ABCSummary }) {
   const total = abc.A + abc.B + abc.C;
   const valTotal = abc.valA + abc.valB + abc.valC;
-  const savedDate = new Date(savedAt).toLocaleString('pt-BR');
 
-  const classes = [
-    {
-      label: 'A',
-      count: abc.A,
-      value: abc.valA,
-      desc: 'Alto impacto financeiro',
-      meta: '~80% do valor total',
-      bg: 'bg-red-500/15',
-      border: 'border-red-500/40',
-      badge: 'bg-red-500/20 text-red-300 border-red-500/40',
-      text: 'text-red-400',
-    },
-    {
-      label: 'B',
-      count: abc.B,
-      value: abc.valB,
-      desc: 'Impacto intermediário',
-      meta: '~15% do valor total',
-      bg: 'bg-amber-500/15',
-      border: 'border-amber-500/40',
-      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      text: 'text-amber-400',
-    },
-    {
-      label: 'C',
-      count: abc.C,
-      value: abc.valC,
-      desc: 'Baixo impacto financeiro',
-      meta: '~5% do valor total',
-      bg: 'bg-slate-700/40',
-      border: 'border-slate-600/40',
-      badge: 'bg-slate-700/40 text-slate-300 border-slate-600/40',
-      text: 'text-slate-300',
-    },
+  // Pie chart data
+  const pieData = [
+    { name: 'Classe A', value: abc.valA, count: abc.A, fill: '#ef4444' },
+    { name: 'Classe B', value: abc.valB, count: abc.B, fill: '#f59e0b' },
+    { name: 'Classe C', value: abc.valC, count: abc.C, fill: '#64748b' }
   ];
 
-  return (
-    <div className="flex flex-col gap-6 h-full">
-      <div className="flex items-center justify-between">
-        <p className="text-slate-400 text-sm font-medium">
-          Classificação ABC por valor — {total} itens analisados
-        </p>
-        <p className="text-slate-600 text-xs">Ref.: {savedDate}</p>
-      </div>
+  // Top 5 items classe A
+  const topA = abcItems.filter(i => i.classe === 'A').slice(0, 5);
 
-      {/* Cards ABC */}
-      <div className="grid grid-cols-3 gap-6 flex-1">
-        {classes.map((c) => {
-          const pctCount = total > 0 ? ((c.count / total) * 100).toFixed(1) : '0.0';
-          const pctVal   = valTotal > 0 ? ((c.value / valTotal) * 100).toFixed(1) : '0.0';
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-4">
+        {pieData.map((c) => {
+          const pctCount = total > 0 ? ((c.count / total) * 100).toFixed(1) : '0';
+          const pctVal = valTotal > 0 ? ((c.value / valTotal) * 100).toFixed(1) : '0';
           return (
-            <motion.div
-              key={c.label}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className={`rounded-2xl border ${c.bg} ${c.border} p-6 flex flex-col gap-4`}
-            >
-              {/* Badge classe */}
-              <div className="flex items-center justify-between">
-                <span className={`text-5xl font-black ${c.text}`}>{c.label}</span>
-                <span className={`px-3 py-1 rounded-xl border text-sm font-bold ${c.badge}`}>
-                  {pctCount}% itens
+            <div key={c.name} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex flex-col justify-between" style={{ borderLeftColor: c.fill, borderLeftWidth: 4 }}>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-lg font-black text-white">{c.name}</span>
+                <span className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: `${c.fill}20`, color: c.fill }}>
+                  {pctVal}% VALOR
                 </span>
               </div>
-
-              {/* Contagem */}
-              <div>
-                <div className={`text-6xl font-black ${c.text}`}>{c.count}</div>
-                <div className="text-slate-500 text-sm mt-1">itens</div>
-              </div>
-
-              {/* Valor */}
-              <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/40">
-                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Valor Total</div>
-                <div className={`text-xl font-black ${c.text}`}>
-                  R$ {c.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-sm text-slate-400 font-semibold mb-1">Custo Acumulado</p>
+                  <p className="text-2xl font-black" style={{ color: c.fill }}>
+                    R$ {c.value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  </p>
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">{pctVal}% do valor total</div>
+                <div className="text-right">
+                  <p className="text-3xl font-black text-white">{c.count}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase">{pctCount}% itens</p>
+                </div>
               </div>
-
-              <div className="text-xs text-slate-500 border-t border-slate-700/40 pt-2">
-                <p className="font-semibold text-slate-400">{c.desc}</p>
-                <p>{c.meta}</p>
-              </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
-      {/* Barra de distribuição visual */}
-      {valTotal > 0 && (
-        <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Distribuição por Valor</div>
-          <div className="h-4 rounded-full overflow-hidden flex">
-            <div className="bg-red-500/70 h-full transition-all" style={{ width: `${(abc.valA / valTotal) * 100}%` }} title={`A: ${((abc.valA / valTotal) * 100).toFixed(1)}%`} />
-            <div className="bg-amber-500/70 h-full transition-all" style={{ width: `${(abc.valB / valTotal) * 100}%` }} title={`B: ${((abc.valB / valTotal) * 100).toFixed(1)}%`} />
-            <div className="bg-slate-500/70 h-full transition-all" style={{ width: `${(abc.valC / valTotal) * 100}%` }} title={`C: ${((abc.valC / valTotal) * 100).toFixed(1)}%`} />
-          </div>
-          <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-            <span>Classe A · {((abc.valA / valTotal) * 100).toFixed(1)}%</span>
-            <span>Classe B · {((abc.valB / valTotal) * 100).toFixed(1)}%</span>
-            <span>Classe C · {((abc.valC / valTotal) * 100).toFixed(1)}%</span>
+      <div className="flex gap-4 flex-1 min-h-0 mt-2">
+        {/* Gráfico Rosca */}
+        <div className="w-[30%] bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center">
+          <p className="text-sm font-bold text-slate-300 uppercase mb-2">Distribuição Financeira</p>
+          <div className="flex-1 w-full min-h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      )}
+
+        {/* Lista Top A */}
+        <div className="w-[70%] bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col">
+          <p className="text-sm font-bold text-red-400 uppercase mb-3 flex items-center justify-between">
+            <span>Principais Ofensores - Classe A</span>
+            <span className="text-xs text-slate-400 font-normal">Top 5 itens representam maior custo do hospital</span>
+          </p>
+          
+          <div className="flex-1 overflow-hidden flex flex-col justify-between">
+            {topA.map((item, idx) => (
+              <div key={item.cod} className="bg-slate-900/50 border border-slate-700/30 rounded flex justify-between p-3">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="bg-red-500/10 text-red-400 font-black text-lg w-8 h-8 rounded flex justify-center items-center flex-shrink-0">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="text-white font-bold text-sm truncate">{toTitleCase(item.produto)}</p>
+                    <p className="text-xs text-slate-400 mt-1">Cód: {item.cod} | {item.qtdConsumo} un consumidas</p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 flex flex-col justify-center">
+                  <p className="text-red-400 font-black text-lg">R$ {item.vlCustoPeriodo.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                  <p className="text-xs text-slate-500 font-semibold">{item.percAcum.toFixed(1)}% do acumulado</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -940,10 +938,10 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       result.push({ type: 'fornecedores', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slide Curva ABC (DESATIVADO - reformulação pendente)
-    // if (tvData.abcSummary && (tvData.abcSummary.A + tvData.abcSummary.B + tvData.abcSummary.C) > 0) {
-    //   result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
-    // }
+    // Slide Curva ABC
+    if (tvData.abcItems && tvData.abcItems.length > 0 && tvData.abcSummary) {
+      result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
+    }
 
     // Slide Consumo Financeiro
     if (tvData.consumos && tvData.consumos.length > 0) {
@@ -1351,7 +1349,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
               <SupplierSlide suppliers={tvData!.suppliers} />
             )}
             {currentSlide.type === 'curva_abc' && tvData!.abcSummary && (
-              <CurvaABCSlide abc={tvData!.abcSummary} savedAt={tvData!.savedAt} />
+              <SlideAbcOficial abcItems={tvData!.abcItems || []} abc={tvData!.abcSummary} />
             )}
             {currentSlide.type === 'followup' && followUpKpis && (
               <FollowUpSlide

@@ -51,6 +51,19 @@ export interface ABCSummary {
   valA: number; valB: number; valC: number;
 }
 
+export interface TVAbcItem {
+  seq: number;
+  cod: string;
+  produto: string;
+  unidade: string;
+  custoUnit: number;
+  qtdConsumo: number;
+  vlCustoPeriodo: number;
+  custoAcumulado: number;
+  classe: 'A' | 'B' | 'C';
+  percAcum: number;
+}
+
 // ── Novas Interfaces (Consumo E Validade) ──────────────────────────────
 export interface TVConsumoItem {
   cod: string;
@@ -76,6 +89,7 @@ export interface AbastecimentoTVData {
   items: TVItem[];
   suppliers: TVSupplier[];
   abcSummary?: ABCSummary;
+  abcItems?: TVAbcItem[];
   // Campos Novos
   consumos: TVConsumoItem[];
   validades: TVValidadeItem[];
@@ -101,10 +115,11 @@ const parseBrNumber = (s: string) => parseFloat((s || '0').trim().replace(/\./g,
 
 export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   // Dispara os fetches em paralelo
-  const [resultCsv, consumoCsv, validadeCsv] = await Promise.all([
+  const [resultCsv, consumoCsv, validadeCsv, abcCsv] = await Promise.all([
     fetch('./data/result%20(17).csv').then(res => res.text()).catch(() => ''),
     fetch('./data/consumo%20insingt.csv').then(res => res.text()).catch(() => ''),
-    fetch('./data/conf%20insgith.csv').then(res => res.text()).catch(() => '')
+    fetch('./data/conf%20insgith.csv').then(res => res.text()).catch(() => ''),
+    fetch('./data/R_C_ABC_CONSUMO_CONSO%20(3).csv').then(res => res.text()).catch(() => '')
   ]);
 
   // 1️⃣ PARSE: RESULT (Abastecimento Típico)
@@ -346,12 +361,80 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   // Contar produtos distintos no estoque (validade)
   const produtosDistintos = new Set(validades.map(v => v.produto)).size;
 
+  // 4️⃣ PARSE: R_C_ABC_CONSUMO_CONSO (3) — Curva ABC oficial
+  const abcItems: TVAbcItem[] = [];
+  let abcSummaryOfficial: ABCSummary | undefined;
+
+  if (abcCsv && abcCsv.length > 100) {
+    const abcParsed = Papa.parse<{ [key: string]: string }>(abcCsv, { header: false, delimiter: ',', skipEmptyLines: true }).data;
+    
+    let lastProduto = '';
+
+    abcParsed.forEach((row: any) => {
+      const cols = Object.values(row) as string[];
+      const raw = cols.map(c => (c || '').trim());
+      
+      // Detecta linha de produto: raw[1] é o Seq (número), raw[3] é o Código, raw[4] é o Nome
+      const seq = parseInt(raw[1]);
+      if (!isNaN(seq) && seq > 0 && raw[4] && raw[4].length > 3) {
+        const cod = raw[3] || '';
+        let produto = raw[4] || '';
+        const unidade = raw[6] || '';
+        const custoUnit = parseBrNumber(raw[8]);
+        const qtdConsumo = parseBrNumber(raw[9]);
+        const vlCustoPeriodo = parseBrNumber(raw[10]);
+        const classeRaw = (raw[12] || '').trim();
+        const classe = classeRaw === 'A' ? 'A' : classeRaw === 'B' ? 'B' : 'C';
+        const custoAcumulado = parseBrNumber(raw[14]);
+        const percAcum = parseBrNumber(raw[16]);
+
+        lastProduto = produto;
+
+        if (vlCustoPeriodo > 0) {
+          abcItems.push({
+            seq, cod, produto, unidade, custoUnit, qtdConsumo,
+            vlCustoPeriodo, custoAcumulado, classe, percAcum
+          });
+        }
+      }
+      
+      // Detecta o resumo oficial do sistema
+      if (raw[0] === 'Resumo das Classificações:' || raw.join(',').includes('Resumo das Classifica')) {
+        // As próximas linhas têm os totais
+      }
+      if (raw[1] && raw[1].includes('N. de Valores(A)') && raw[5]) {
+        const countA = parseInt(raw[5]) || 0;
+        // Vamos construir o summary após ter percorrido tudo
+      }
+    });
+
+    // Calcula summary direto dos itens
+    if (abcItems.length > 0) {
+      const itemsA = abcItems.filter(i => i.classe === 'A');
+      const itemsB = abcItems.filter(i => i.classe === 'B');
+      const itemsC = abcItems.filter(i => i.classe === 'C');
+
+      abcSummaryOfficial = {
+        A: itemsA.length,
+        B: itemsB.length,
+        C: itemsC.length,
+        valA: itemsA.reduce((s, i) => s + i.vlCustoPeriodo, 0),
+        valB: itemsB.reduce((s, i) => s + i.vlCustoPeriodo, 0),
+        valC: itemsC.reduce((s, i) => s + i.vlCustoPeriodo, 0),
+      };
+    }
+  }
+
+  // Usa o ABC oficial se disponível, senão cai no calculado
+  const finalAbcSummary = abcSummaryOfficial || abcSummary;
+
   return {
     savedAt: new Date().toISOString(),
     kpis,
     items,
     suppliers,
-    abcSummary,
+    abcSummary: finalAbcSummary,
+    abcItems: abcItems.length > 0 ? abcItems : undefined,
     consumos: consumosOrdenados,
     validades: validades.sort((a, b) => a.diasParaVencer - b.diasParaVencer),
     kpisValidade: { itensVencendo30d, itensVencendo90d, totalLotes: validades.length, totalProdutosEstoque: produtosDistintos },
