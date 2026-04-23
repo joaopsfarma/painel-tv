@@ -733,8 +733,8 @@ function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], k
     }
 
     validades.forEach(v => {
-      const d = v.validadeData;
-      if (d > now) {
+      const d = v.validadeData instanceof Date ? v.validadeData : new Date(v.validadeData);
+      if (!isNaN(d.getTime()) && d > now) {
         const key = `${months[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
         if (counts[key] !== undefined) counts[key] += v.quantidade;
       }
