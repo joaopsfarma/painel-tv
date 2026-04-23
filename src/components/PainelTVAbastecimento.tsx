@@ -950,14 +950,14 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       result.push({ type: 'consumo', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slide Validade Estoque
-    if (tvData.validades && tvData.validades.length > 0) {
-      const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90).slice(0, 30);
-      if (expiring.length > 0) {
-        const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
-        for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
-      }
-    }
+    // Slide Validade Estoque (DESATIVADO - reformulação pendente)
+    // if (tvData.validades && tvData.validades.length > 0) {
+    //   const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90).slice(0, 30);
+    //   if (expiring.length > 0) {
+    //     const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
+    //     for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
+    //   }
+    // }
 
     // Slides Follow Up
     if (followUpKpis && followUpKpis.atrasados > 0) {
