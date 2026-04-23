@@ -91,6 +91,7 @@ export interface TVValidadeItem {
   quantidade: number;
   estoqueAtual: number;
   estoqueNum: string;
+  estoqueNome: string;
   valorTotal: number;
 }
 
@@ -184,8 +185,6 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
   savedAt: string;
   followUpKpis?: FollowUpKpis | null;
 }) {
-  const savedDate = new Date(savedAt).toLocaleString('pt-BR');
-
   const kpiCards = [
     {
       label: 'Rupturas / Em Falta',
@@ -298,7 +297,7 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
           <div className="text-3xl font-black text-slate-800">
             {kpis.total}
           </div>
-          <div className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">Última Sincronização</div>
+          <div className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">Sinc: {new Date(savedAt).toLocaleDateString('pt-BR')}</div>
         </div>
         {followUpKpis && (
           <>
@@ -934,7 +933,7 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
 
 // ── Sub-componente: Validade e Estoque ────────────────────────────────────
 
-function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { validades: TVValidadeItem[], kpis: any, pageIndex: number, totalPages: number }) {
+function SlideValidadeEstoque({ validades, kpis, pageIndex }: { validades: TVValidadeItem[], kpis: any, pageIndex: number, totalPages: number }) {
   const page = validades.slice(pageIndex * ITEMS_PER_SLIDE, (pageIndex + 1) * ITEMS_PER_SLIDE);
 
   return (

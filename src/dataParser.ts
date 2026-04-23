@@ -342,6 +342,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         quantidade,
         estoqueAtual: currentEstoque,
         estoqueNum,
+        estoqueNome: '', // Adicionado para satisfazer a interface
         valorTotal: 0
       });
 
