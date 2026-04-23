@@ -594,13 +594,21 @@ function SlidePrescricoesHora() {
   return (
     <div className="flex flex-col gap-6 h-full p-2">
       {/* KPIs no topo */}
-            <span className="text-xl font-bold text-lime-500/70">{peak} presc.</span>
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-white border-2 border-purple-100 rounded-[2rem] p-8 shadow-xl shadow-purple-50">
+          <p className="text-[10px] text-purple-400 font-bold uppercase tracking-widest mb-2">Total Prescrições (24h)</p>
+          <p className="text-6xl font-black text-purple-600 tracking-tighter">{total}</p>
+        </div>
+        <div className="bg-white border-2 border-emerald-100 rounded-[2rem] p-8 shadow-xl shadow-emerald-50">
+          <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mb-2">Horário de Pico</p>
+          <div className="flex items-end gap-2">
+            <p className="text-6xl font-black text-emerald-600 tracking-tighter">11:00</p>
+            <p className="text-xl font-bold text-emerald-400 mb-2">{peak} presc.</p>
           </div>
         </div>
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6">
-          <p className="text-sm text-slate-400 font-bold uppercase mb-1">Média Hospitalar</p>
-          <p className="text-5xl font-black text-white">{(total / 24).toFixed(1)}</p>
-          <p className="text-xs text-slate-500 font-semibold uppercase tracking-tighter">prescrições por hora</p>
+        <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 shadow-xl shadow-slate-50">
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Média Hospitalar</p>
+          <p className="text-6xl font-black text-slate-800 tracking-tighter">{(total / 24).toFixed(1)}</p>
         </div>
       </div>
 
@@ -1336,8 +1344,6 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
   if (!tvData) {
     return (
-      <div ref={containerRef} className="min-h-screen bg-slate-900 flex items-center justify-center font-sans">
-        <div className="max-w-md w-full mx-auto p-8 text-center">
       <div ref={containerRef} className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans">
         <div className="max-w-md w-full mx-auto p-8 text-center bg-white rounded-[2rem] shadow-xl border border-slate-100">
           <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -1429,16 +1435,23 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
   if (isPlaying && healthStatus === 'OK' && slides.length <= 2) {
     return (
-      <div ref={containerRef} className="min-h-screen bg-slate-900 flex flex-col items-center justify-center font-sans gap-6">
-        <ShieldCheck className="w-24 h-24 text-lime-400" />
-        <h2 className="text-4xl font-black text-white">Estoque Sob Controle</h2>
-        <p className="text-lime-400 text-xl font-semibold">Sem rupturas ou alertas críticos</p>
-        <p className="text-slate-500 text-sm">{tvData.kpis.total} itens analisados · Cobertura média: {tvData.kpis.coberturaMedia} dias</p>
+      <div ref={containerRef} className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center font-sans gap-8 p-12 text-center">
+        <div className="bg-emerald-50 p-10 rounded-[3rem] border-4 border-emerald-500 shadow-2xl shadow-emerald-100">
+           <ShieldCheck className="w-32 h-32 text-emerald-600 animate-pulse" />
+        </div>
+        <div>
+          <h2 className="text-6xl font-black text-slate-900 tracking-tighter mb-4">Estoque em Conformidade</h2>
+          <p className="text-3xl font-black text-emerald-600 uppercase tracking-[0.2em]">Sem Alertas Críticos</p>
+        </div>
+        <p className="text-slate-500 text-lg max-w-xl">
+          Todos os {tvData.kpis.total} itens analisados estão dentro dos parâmetros de segurança. 
+          Cobertura média do hospital: <span className="font-black text-slate-900">{tvData.kpis.coberturaMedia} dias</span>.
+        </p>
         <button
           onClick={() => setIsPlaying(false)}
-          className="mt-4 flex items-center gap-2 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-4 py-2 rounded-xl transition-colors text-sm"
+          className="mt-8 flex items-center gap-3 text-slate-400 hover:text-purple-600 border-2 border-slate-200 hover:border-purple-200 px-8 py-4 rounded-2xl transition-all font-bold"
         >
-          <Pause className="w-4 h-4" /> Pausar
+          <Pause className="w-6 h-6" /> Pausar Monitoramento
         </button>
       </div>
     );
