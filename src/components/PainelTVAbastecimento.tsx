@@ -779,7 +779,7 @@ function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], k
                 cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
               />
               <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                {chartData.map((entry, index) => (
+                {chartData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : index === 1 ? '#f59e0b' : '#3b82f6'} />
                 ))}
               </Bar>
