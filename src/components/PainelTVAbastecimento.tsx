@@ -90,6 +90,7 @@ export interface TVValidadeItem {
   quantidade: number;
   estoqueAtual: number;
   estoqueNum: string;
+  valorTotal: number;
 }
 
 interface AbastecimentoTVData {
@@ -106,6 +107,8 @@ interface AbastecimentoTVData {
     itensVencendo90d: number;
     totalLotes: number;
     totalProdutosEstoque: number;
+    valorEmRisco90d: number;
+    valorTotalEstoque: number;
   };
   kpisConsumo?: {
     custoTotal: number;
