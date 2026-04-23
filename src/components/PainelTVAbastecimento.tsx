@@ -118,7 +118,7 @@ interface AbastecimentoTVData {
   };
 }
 
-type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup' | 'consumo' | 'estoque_validade';
+type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup' | 'consumo' | 'estoque_validade' | 'prescricoes_hora';
 
 interface Slide {
   type: SlideType;
@@ -560,6 +560,92 @@ function SlideAbcOficial({ abcItems, abc }: { abcItems: TVAbcItem[]; abc: ABCSum
   );
 }
 
+// ── Sub-componente: Prescrições por Hora ─────────────────────────────────
+
+const PRESC_DATA = [
+  { hour: '00h', val: 8 }, { hour: '01h', val: 9 }, { hour: '02h', val: 1 }, { hour: '03h', val: 3 },
+  { hour: '04h', val: 2 }, { hour: '05h', val: 1 }, { hour: '06h', val: 2 }, { hour: '07h', val: 1 },
+  { hour: '08h', val: 6 }, { hour: '09h', val: 21 }, { hour: '10h', val: 32 }, { hour: '11h', val: 56 },
+  { hour: '12h', val: 37 }, { hour: '13h', val: 25 }, { hour: '14h', val: 6 }, { hour: '15h', val: 11 },
+  { hour: '16h', val: 9 }, { hour: '17h', val: 8 }, { hour: '18h', val: 6 }, { hour: '19h', val: 2 },
+  { hour: '20h', val: 2 }, { hour: '21h', val: 6 }, { hour: '22h', val: 2 }, { hour: '23h', val: 10 },
+];
+
+function SlidePrescricoesHora() {
+  const peak = Math.max(...PRESC_DATA.map(d => d.val));
+  const total = PRESC_DATA.reduce((acc, d) => acc + d.val, 0);
+
+  return (
+    <div className="flex flex-col gap-6 h-full">
+      {/* KPIs no topo */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-4">
+          <p className="text-xs text-purple-300 font-bold uppercase">Total Prescrições (24h)</p>
+          <p className="text-3xl font-black text-purple-400">{total}</p>
+        </div>
+        <div className="bg-lime-500/15 border border-lime-500/40 rounded-xl p-4">
+          <p className="text-xs text-lime-300 font-bold uppercase">Horário de Pico</p>
+          <p className="text-3xl font-black text-lime-400">11:00</p>
+          <p className="text-[10px] text-lime-500/70">{peak} presc/hora</p>
+        </div>
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
+          <p className="text-xs text-slate-400 font-bold uppercase">Média por Hora</p>
+          <p className="text-3xl font-black text-white">{(total / 24).toFixed(1)}</p>
+        </div>
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
+          <p className="text-xs text-slate-400 font-bold uppercase">Unidade</p>
+          <p className="text-3xl font-black text-white text-purple-400">BSB</p>
+        </div>
+      </div>
+
+      {/* Gráfico Principal */}
+      <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={PRESC_DATA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.6}/>
+                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+            <XAxis 
+              dataKey="hour" 
+              stroke="#94a3b8" 
+              fontSize={14} 
+              fontWeight="bold"
+              axisLine={false}
+              tickLine={false}
+              dy={10}
+            />
+            <YAxis 
+              stroke="#94a3b8" 
+              fontSize={14} 
+              fontWeight="bold"
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff' }}
+              itemStyle={{ color: '#a855f7', fontWeight: 'bold' }}
+              cursor={{ stroke: '#a855f7', strokeWidth: 2 }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="val" 
+              stroke="#a855f7" 
+              strokeWidth={4}
+              fillOpacity={1} 
+              fill="url(#colorVal)" 
+              animationDuration={2000}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 // ── Sub-componente: Follow Up ─────────────────────────────────────────────
 
 function FollowUpSlide({ items, pageIndex, totalPages }: {
@@ -963,6 +1049,9 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       for (let p = 0; p < pages; p++) result.push({ type: 'followup', pageIndex: p, totalPages: pages });
     }
 
+    // Slide Prescrições por Hora (Manual data from 7462)
+    result.push({ type: 'prescricoes_hora', pageIndex: 0, totalPages: 1 });
+
     return result;
   }, [tvData, followUpKpis]);
 
@@ -1088,6 +1177,14 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
         iconPulse: true,
         progressColor: 'from-red-600 to-orange-400',
         theme: 'red' as const,
+      },
+      prescricoes_hora: {
+        title: '7462 — PRESCRIÇÕES GERADAS POR HORA (BSB)',
+        icon: Activity,
+        iconColor: 'text-purple-400',
+        iconPulse: true,
+        progressColor: 'from-purple-600 to-lime-400',
+        theme: 'blue' as const,
       },
     };
 
@@ -1368,6 +1465,9 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
                 pageIndex={currentSlide.pageIndex}
                 totalPages={currentSlide.totalPages}
               />
+            )}
+            {currentSlide.type === 'prescricoes_hora' && (
+              <SlidePrescricoesHora />
             )}
           </motion.div>
         </AnimatePresence>
