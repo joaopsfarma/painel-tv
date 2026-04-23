@@ -943,10 +943,10 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slide Consumo Financeiro
-    if (tvData.consumos && tvData.consumos.length > 0) {
-      result.push({ type: 'consumo', pageIndex: 0, totalPages: 1 });
-    }
+    // Slide Consumo Financeiro (DESATIVADO)
+    // if (tvData.consumos && tvData.consumos.length > 0) {
+    //   result.push({ type: 'consumo', pageIndex: 0, totalPages: 1 });
+    // }
 
     // Slide Validade Estoque (DESATIVADO - reformulação pendente)
     // if (tvData.validades && tvData.validades.length > 0) {
