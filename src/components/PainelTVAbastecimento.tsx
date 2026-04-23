@@ -75,6 +75,7 @@ export interface TVValidadeItem {
   validadeData: string | Date;
   diasParaVencer: number;
   quantidade: number;
+  estoqueAtual: number;
 }
 
 interface AbastecimentoTVData {
@@ -88,6 +89,17 @@ interface AbastecimentoTVData {
   kpisValidade?: {
     itensVencendo30d: number;
     itensVencendo90d: number;
+    totalLotes: number;
+    totalProdutosEstoque: number;
+  };
+  kpisConsumo?: {
+    custoTotal: number;
+    totalItens: number;
+    totalPecasConsumidas: number;
+    custoMedioPorItem: number;
+    ticketMedio: number;
+    top1Produto: string;
+    top1Valor: number;
   };
 }
 
@@ -629,6 +641,7 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
 function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: ABCSummary }) {
   const top10 = consumos.slice(0, 10);
   const totalValor = consumos.reduce((s, c) => s + c.vlCustoPeriodo, 0);
+  const totalPecas = consumos.reduce((s, c) => s + c.qtdConsumo, 0);
   
   const pieColors = ['#ef4444', '#f59e0b', '#64748b'];
   const pieData = abc ? [
@@ -638,55 +651,76 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
   ] : [];
 
   return (
-    <div className="flex gap-6 h-full p-2">
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-           <div>
-             <p className="text-slate-400 text-sm font-semibold uppercase">Total Consumido Período</p>
-             <p className="text-4xl font-black text-indigo-400">R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-           </div>
-           <div className="text-right">
-             <p className="text-slate-400 text-sm font-semibold uppercase">Itens Movimentados</p>
-             <p className="text-3xl font-bold text-white">{consumos.length}</p>
-           </div>
+    <div className="flex flex-col gap-4 h-full">
+      {/* KPIs Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="bg-indigo-500/15 border border-indigo-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-indigo-300 font-bold uppercase">Custo Total Período</p>
+          <p className="text-2xl font-black text-indigo-400">R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
         </div>
-        <p className="text-slate-400 text-sm font-medium">Top 10 Produtos de Maior Custo</p>
-        <div className="flex-1 min-h-0 bg-slate-800/30 p-2 rounded-xl border border-slate-700/50">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={top10} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-              <XAxis type="number" hide />
-              <YAxis dataKey="produto" type="category" width={300} tick={{ fontSize: 11, fill: '#cbd5e1' }} axisLine={false} tickLine={false} />
-              <Tooltip 
-                 formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
-                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-              />
-              <Bar dataKey="vlCustoPeriodo" fill="#6366f1" radius={[0, 4, 4, 0]}>
-                {top10.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#6366f1'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="bg-blue-500/15 border border-blue-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-blue-300 font-bold uppercase">Itens Distintos</p>
+          <p className="text-2xl font-black text-blue-400">{consumos.length}</p>
+        </div>
+        <div className="bg-emerald-500/15 border border-emerald-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-emerald-300 font-bold uppercase">Peças Consumidas</p>
+          <p className="text-2xl font-black text-emerald-400">{totalPecas.toLocaleString('pt-BR')}</p>
+        </div>
+        <div className="bg-amber-500/15 border border-amber-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-amber-300 font-bold uppercase">Custo Médio/Item</p>
+          <p className="text-2xl font-black text-amber-400">R$ {consumos.length > 0 ? (totalValor / consumos.length).toFixed(2) : '0'}</p>
+        </div>
+        <div className="bg-rose-500/15 border border-rose-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-rose-300 font-bold uppercase">Ticket Médio/Peça</p>
+          <p className="text-2xl font-black text-rose-400">R$ {totalPecas > 0 ? (totalValor / totalPecas).toFixed(2) : '0'}</p>
         </div>
       </div>
-      {abc && (
-        <div className="w-[350px] flex flex-col bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-           <p className="text-slate-400 text-sm font-bold text-center mb-6 uppercase">Representatividade ABC</p>
-           <div className="flex-1 w-full min-h-[250px]">
-             <ResponsiveContainer width="100%" height="100%">
-               <PieChart>
-                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
-                   {pieData.map((_, index) => (
-                     <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                   ))}
-                 </Pie>
-                 <Tooltip formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`} contentStyle={{ backgroundColor: '#1e293b', border: 'none' }} />
-                 <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1', fontSize: '12px' }} />
-               </PieChart>
-             </ResponsiveContainer>
-           </div>
+      {/* Charts */}
+      <div className="flex gap-4 flex-1 min-h-0">
+        <div className="flex-1 flex flex-col gap-2">
+          <p className="text-slate-400 text-sm font-bold uppercase">Top 10 Maior Custo</p>
+          <div className="flex-1 min-h-0 bg-slate-800/30 p-2 rounded-xl border border-slate-700/50">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={top10} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <XAxis type="number" hide />
+                <YAxis dataKey="produto" type="category" width={280} tick={{ fontSize: 11, fill: '#cbd5e1' }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                   formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`}
+                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                />
+                <Bar dataKey="vlCustoPeriodo" fill="#6366f1" radius={[0, 4, 4, 0]}>
+                  {top10.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#6366f1'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      )}
+        {abc && (abc.A + abc.B + abc.C) > 0 && (
+          <div className="w-[300px] flex flex-col bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+             <p className="text-slate-400 text-sm font-bold text-center mb-2 uppercase">Curva ABC</p>
+             <div className="flex-1 w-full min-h-[200px]">
+               <ResponsiveContainer width="100%" height="100%">
+                 <PieChart>
+                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={5} dataKey="value" stroke="none">
+                     {pieData.map((_, index) => (
+                       <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                     ))}
+                   </Pie>
+                   <Tooltip formatter={(val: any) => `R$ ${Number(val || 0).toLocaleString('pt-BR')}`} contentStyle={{ backgroundColor: '#1e293b', border: 'none' }} />
+                   <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1', fontSize: '12px' }} />
+                 </PieChart>
+               </ResponsiveContainer>
+             </div>
+             <div className="grid grid-cols-3 gap-2 mt-2">
+               <div className="text-center"><span className="text-red-400 font-black text-lg">{abc.A}</span><br/><span className="text-[10px] text-slate-500">itens A</span></div>
+               <div className="text-center"><span className="text-amber-400 font-black text-lg">{abc.B}</span><br/><span className="text-[10px] text-slate-500">itens B</span></div>
+               <div className="text-center"><span className="text-slate-400 font-black text-lg">{abc.C}</span><br/><span className="text-[10px] text-slate-500">itens C</span></div>
+             </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -698,24 +732,36 @@ function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { vali
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      <div className="flex gap-4">
-        <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-4 flex-1 flex justify-between items-center text-red-400">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 flex justify-between items-center text-red-400">
            <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Vence em &lt; 30 Dias</p>
-             <p className="text-4xl font-black">{kpis?.itensVencendo30d || 0}</p>
-           </div>
-           <CalendarClock className="w-10 h-10 opacity-50" />
-        </div>
-        <div className="bg-amber-500/20 border border-amber-500/40 rounded-xl p-4 flex-1 flex justify-between items-center text-amber-400">
-           <div>
-             <p className="text-xs font-bold uppercase tracking-wider">Vence em &lt; 90 Dias</p>
-             <p className="text-3xl font-black">{kpis?.itensVencendo90d || 0}</p>
+             <p className="text-xs font-bold uppercase tracking-wider">Vence &lt; 30 Dias</p>
+             <p className="text-3xl font-black">{kpis?.itensVencendo30d || 0}</p>
            </div>
            <CalendarClock className="w-8 h-8 opacity-50" />
         </div>
+        <div className="bg-amber-500/20 border border-amber-500/40 rounded-xl p-3 flex justify-between items-center text-amber-400">
+           <div>
+             <p className="text-xs font-bold uppercase tracking-wider">Vence &lt; 90 Dias</p>
+             <p className="text-3xl font-black">{kpis?.itensVencendo90d || 0}</p>
+           </div>
+           <CalendarClock className="w-7 h-7 opacity-50" />
+        </div>
+        <div className="bg-blue-500/20 border border-blue-500/40 rounded-xl p-3 flex justify-between items-center text-blue-400">
+           <div>
+             <p className="text-xs font-bold uppercase tracking-wider">Total Lotes</p>
+             <p className="text-3xl font-black">{kpis?.totalLotes || 0}</p>
+           </div>
+        </div>
+        <div className="bg-violet-500/20 border border-violet-500/40 rounded-xl p-3 flex justify-between items-center text-violet-400">
+           <div>
+             <p className="text-xs font-bold uppercase tracking-wider">Produtos Distintos</p>
+             <p className="text-3xl font-black">{kpis?.totalProdutosEstoque || 0}</p>
+           </div>
+        </div>
       </div>
       
-      <p className="text-slate-400 text-xs font-medium uppercase mt-2">Lotes Mais Próximos de Expirar {totalPages > 1 && `(Pag ${pageIndex+1}/${totalPages})`}</p>
+      <p className="text-slate-400 text-sm font-bold uppercase">Lotes Mais Próximos de Expirar {totalPages > 1 && `(Pag ${pageIndex+1}/${totalPages})`}</p>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1">
         {page.map((v, idx) => {
@@ -727,11 +773,12 @@ function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { vali
                  <span className="text-[10px] font-bold uppercase">Dias</span>
                </div>
                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                 <p className="text-white text-sm font-bold truncate">{toTitleCase(v.produto)}</p>
-                 <div className="flex gap-3 mt-1 text-xs text-slate-400">
+                 <p className="text-white text-base font-black truncate">{toTitleCase(v.produto)}</p>
+                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-slate-400">
                    <span>Lote: <strong className="text-slate-300">{v.lote}</strong></span>
                    <span>Vence: <strong className="text-slate-300">{v.validadeStr}</strong></span>
-                   <span>Qtd: <strong className="text-slate-300">{v.quantidade}</strong></span>
+                   <span>Qtd Lote: <strong className="text-slate-300">{v.quantidade}</strong></span>
+                   <span>Estoque: <strong className="text-emerald-400 text-base">{v.estoqueAtual.toLocaleString('pt-BR')}</strong></span>
                  </div>
                </div>
             </motion.div>
@@ -1312,7 +1359,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
               />
             )}
             {currentSlide.type === 'consumo' && tvData!.consumos && (
-              <SlideConsumoABC consumos={tvData!.consumos} abc={tvData!.abcSummary} />
+              <SlideConsumoABC consumos={tvData!.consumos} abc={tvData!.abcSummary} kpisConsumo={tvData!.kpisConsumo} />
             )}
             {currentSlide.type === 'estoque_validade' && tvData!.validades && (
               <SlideValidadeEstoque

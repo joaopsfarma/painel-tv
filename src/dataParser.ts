@@ -66,6 +66,7 @@ export interface TVValidadeItem {
   validadeData: Date;
   diasParaVencer: number;
   quantidade: number;
+  estoqueAtual: number;
 }
 
 export interface AbastecimentoTVData {
@@ -80,6 +81,17 @@ export interface AbastecimentoTVData {
   kpisValidade?: {
     itensVencendo30d: number;
     itensVencendo90d: number;
+    totalLotes: number;
+    totalProdutosEstoque: number;
+  };
+  kpisConsumo?: {
+    custoTotal: number;
+    totalItens: number;
+    totalPecasConsumidas: number;
+    custoMedioPorItem: number;
+    ticketMedio: number;
+    top1Produto: string;
+    top1Valor: number;
   };
 }
 
@@ -260,6 +272,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
 
   const validades: TVValidadeItem[] = [];
   let currentProduct = "Desconhecido";
+  let currentEstoque = 0;
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
 
@@ -276,6 +289,15 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     const isNomeProduto = norm[2] && norm[2].length > 3 && !/^\d{2}\/\d{2}\/\d{4}$/.test(norm[2]);
     if (isCodigoProduto && isNomeProduto) {
       currentProduct = norm[2];
+      // O campo "Estoque Atual" está na posição 6 (coluna original após Unidade)
+      // Busca nos campos o primeiro número com vírgula antes da data
+      for (let i = 3; i < norm.length; i++) {
+        const val = parseBrNumber(norm[i]);
+        if (val > 0 && !/\//.test(norm[i])) {
+          currentEstoque = val;
+          break;
+        }
+      }
     }
 
     // Procura por data válido no formato DD/MM/YYYY
@@ -304,7 +326,8 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         validadeStr: dataStr,
         validadeData: dateObj,
         diasParaVencer: diffDays,
-        quantidade: qtd
+        quantidade: qtd,
+        estoqueAtual: currentEstoque
       };
 
       validades.push(valItem);
@@ -316,6 +339,21 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     }
   });
 
+  // KPIs de consumo
+  const totalPecasConsumidas = consumosOrdenados.reduce((s, c) => s + c.qtdConsumo, 0);
+  const kpisConsumo = consumosOrdenados.length > 0 ? {
+    custoTotal: custoTotalEmpresa,
+    totalItens: consumosOrdenados.length,
+    totalPecasConsumidas,
+    custoMedioPorItem: custoTotalEmpresa / consumosOrdenados.length,
+    ticketMedio: totalPecasConsumidas > 0 ? custoTotalEmpresa / totalPecasConsumidas : 0,
+    top1Produto: consumosOrdenados[0]?.produto || '',
+    top1Valor: consumosOrdenados[0]?.vlCustoPeriodo || 0,
+  } : undefined;
+
+  // Contar produtos distintos no estoque (validade)
+  const produtosDistintos = new Set(validades.map(v => v.produto)).size;
+
   return {
     savedAt: new Date().toISOString(),
     kpis,
@@ -324,6 +362,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     abcSummary,
     consumos: consumosOrdenados,
     validades: validades.sort((a, b) => a.diasParaVencer - b.diasParaVencer),
-    kpisValidade: { itensVencendo30d, itensVencendo90d }
+    kpisValidade: { itensVencendo30d, itensVencendo90d, totalLotes: validades.length, totalProdutosEstoque: produtosDistintos },
+    kpisConsumo,
   };
 }
