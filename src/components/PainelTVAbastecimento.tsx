@@ -940,10 +940,10 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       result.push({ type: 'fornecedores', pageIndex: 0, totalPages: 1 });
     }
 
-    // Slide Curva ABC
-    if (tvData.abcSummary && (tvData.abcSummary.A + tvData.abcSummary.B + tvData.abcSummary.C) > 0) {
-      result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
-    }
+    // Slide Curva ABC (DESATIVADO - reformulação pendente)
+    // if (tvData.abcSummary && (tvData.abcSummary.A + tvData.abcSummary.B + tvData.abcSummary.C) > 0) {
+    //   result.push({ type: 'curva_abc', pageIndex: 0, totalPages: 1 });
+    // }
 
     // Slide Consumo Financeiro
     if (tvData.consumos && tvData.consumos.length > 0) {
