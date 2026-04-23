@@ -264,7 +264,7 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
         </div>
         <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
           <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Total de Itens</div>
-          <div className="text-3xl font-black text-blue-400">
+          <div className="text-3xl font-black text-purple-400">
             {kpis.total}
           </div>
           <div className="text-[10px] text-slate-500 mt-1">Atualizado: {savedDate}</div>
@@ -659,9 +659,9 @@ function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: A
           <p className="text-xs text-indigo-300 font-bold uppercase">Custo Total Período</p>
           <p className="text-2xl font-black text-indigo-400">R$ {totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
         </div>
-        <div className="bg-blue-500/15 border border-blue-500/40 rounded-xl p-3 text-center">
-          <p className="text-xs text-blue-300 font-bold uppercase">Itens Distintos</p>
-          <p className="text-2xl font-black text-blue-400">{consumos.length}</p>
+        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-3 text-center">
+          <p className="text-xs text-purple-300 font-bold uppercase">Itens Distintos</p>
+          <p className="text-2xl font-black text-purple-400">{consumos.length}</p>
         </div>
         <div className="bg-emerald-500/15 border border-emerald-500/40 rounded-xl p-3 text-center">
           <p className="text-xs text-emerald-300 font-bold uppercase">Peças Consumidas</p>
@@ -748,7 +748,7 @@ function SlideValidadeEstoque({ validades, kpis, pageIndex, totalPages }: { vali
            </div>
            <CalendarClock className="w-7 h-7 opacity-50" />
         </div>
-        <div className="bg-blue-500/20 border border-blue-500/40 rounded-xl p-3 flex justify-between items-center text-blue-400">
+        <div className="bg-purple-500/20 border border-purple-500/40 rounded-xl p-3 flex justify-between items-center text-purple-400">
            <div>
              <p className="text-xs font-bold uppercase tracking-wider">Total Lotes</p>
              <p className="text-3xl font-black">{kpis?.totalLotes || 0}</p>
@@ -1020,11 +1020,11 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
     const configs = {
       dashboard: {
-        title: 'PAINEL GERAL',
+        title: 'PAINEL GERAL — REDE AMÉRICAS',
         icon: Activity,
-        iconColor: 'text-blue-400',
+        iconColor: 'text-purple-400',
         iconPulse: false,
-        progressColor: 'from-blue-600 to-indigo-400',
+        progressColor: 'from-purple-600 to-violet-400',
         theme: 'blue' as const,
       },
       rupturas: {
@@ -1054,17 +1054,17 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       fornecedores: {
         title: 'AVALIAÇÃO DE FORNECEDORES',
         icon: Users,
-        iconColor: 'text-violet-400',
+        iconColor: 'text-purple-400',
         iconPulse: false,
-        progressColor: 'from-violet-600 to-violet-400',
+        progressColor: 'from-purple-600 to-violet-400',
         theme: 'blue' as const,
       },
       curva_abc: {
         title: 'CURVA ABC — CLASSIFICAÇÃO',
         icon: BarChart2,
-        iconColor: 'text-emerald-400',
+        iconColor: 'text-lime-400',
         iconPulse: false,
-        progressColor: 'from-emerald-600 to-teal-400',
+        progressColor: 'from-lime-600 to-green-400',
         theme: 'blue' as const,
       },
       followup: {
@@ -1078,9 +1078,9 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       consumo: {
         title: 'CONSUMO FINANCEIRO NO PERÍODO',
         icon: PieChartIcon,
-        iconColor: 'text-indigo-400',
+        iconColor: 'text-purple-400',
         iconPulse: false,
-        progressColor: 'from-indigo-600 to-blue-400',
+        progressColor: 'from-purple-600 to-violet-400',
         theme: 'blue' as const,
       },
       estoque_validade: {
@@ -1118,12 +1118,12 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
           <h2 className="text-2xl font-bold text-white mb-2">Nenhum dado disponível</h2>
           <p className="text-slate-400 text-sm mb-6 leading-relaxed">
             Para usar o Painel TV, acesse primeiro a aba{' '}
-            <strong className="text-blue-400">Visão de Abastecimento</strong> e importe
+            <strong className="text-purple-400">Visão de Abastecimento</strong> e importe
             um arquivo CSV. Os dados serão salvos automaticamente para exibição aqui.
           </p>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 mx-auto text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl transition-colors"
+            className="flex items-center gap-2 mx-auto text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 px-5 py-2.5 rounded-xl transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Ir para Visão de Abastecimento
           </button>
@@ -1142,18 +1142,18 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
       { label: 'rupturas', value: tvData.kpis.emFalta, color: 'bg-red-500/20 text-red-300 border-red-500/40' },
       { label: 'cob. crítica', value: tvData.kpis.coberturaCritica, color: 'bg-orange-500/20 text-orange-300 border-orange-500/40' },
       { label: 'atrasados', value: tvData.kpis.atrasados, color: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-      { label: 'total itens', value: tvData.kpis.total, color: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
+      { label: 'total itens', value: tvData.kpis.total, color: 'bg-purple-500/20 text-purple-300 border-purple-500/40' },
       ...(followUpKpis ? [{ label: 'OCs atrasadas', value: followUpKpis.atrasados, color: 'bg-rose-500/20 text-rose-300 border-rose-500/40' }] : []),
     ];
 
     return (
       <div ref={containerRef} className="min-h-screen bg-slate-900 flex items-center justify-center font-sans">
         <div className="max-w-lg w-full mx-auto p-8 text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-900/50">
+          <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-violet-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-900/50">
             <Monitor className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-1">Painel TV Integrado</h1>
-          <p className="text-blue-300 font-semibold mb-2">Abastecimento Farmacêutico & Follow Up</p>
+          <h1 className="text-3xl font-black text-white mb-1">Painel TV — Rede Américas</h1>
+          <p className="text-purple-300 font-semibold mb-2">Abastecimento Farmacêutico & Follow Up</p>
           <p className="text-slate-500 text-xs mb-8">Dados salvos em: {savedDate}</p>
 
           <div className="grid grid-cols-2 gap-3 mb-8">
@@ -1167,7 +1167,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
           <button
             onClick={handleStart}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-lg py-4 rounded-2xl shadow-xl shadow-blue-900/40 transition-all"
+            className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-500 hover:to-violet-600 text-white font-black text-lg py-4 rounded-2xl shadow-xl shadow-purple-900/40 transition-all"
           >
             <Play className="w-6 h-6" /> INICIAR PAINEL E ÁUDIO
           </button>
@@ -1190,9 +1190,9 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   if (isPlaying && healthStatus === 'OK' && slides.length <= 2) {
     return (
       <div ref={containerRef} className="min-h-screen bg-slate-900 flex flex-col items-center justify-center font-sans gap-6">
-        <ShieldCheck className="w-24 h-24 text-emerald-400" />
+        <ShieldCheck className="w-24 h-24 text-lime-400" />
         <h2 className="text-4xl font-black text-white">Estoque Sob Controle</h2>
-        <p className="text-emerald-400 text-xl font-semibold">Sem rupturas ou alertas críticos</p>
+        <p className="text-lime-400 text-xl font-semibold">Sem rupturas ou alertas críticos</p>
         <p className="text-slate-500 text-sm">{tvData.kpis.total} itens analisados · Cobertura média: {tvData.kpis.coberturaMedia} dias</p>
         <button
           onClick={() => setIsPlaying(false)}
@@ -1228,7 +1228,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 text-slate-500 text-xs">
             <Monitor className="w-3.5 h-3.5" />
-            <span>Painel TV Integrado · Abastecimento & Follow Up</span>
+            <span>Painel TV · Rede Américas · Abastecimento & Follow Up</span>
           </div>
           <div className="flex items-center gap-2 text-slate-400 text-sm font-mono">
             <Clock className="w-4 h-4" />
@@ -1282,7 +1282,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
             </button>
             <button
               onClick={() => setIsSoundEnabled(s => !s)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSoundEnabled ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-500 hover:text-slate-300'}`}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSoundEnabled ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-800 text-slate-500 hover:text-slate-300'}`}
               title={isSoundEnabled ? 'Desativar som' : 'Ativar som'}
             >
               {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
