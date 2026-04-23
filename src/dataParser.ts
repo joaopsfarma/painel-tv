@@ -115,11 +115,12 @@ const parseBrNumber = (s: string) => parseFloat((s || '0').trim().replace(/\./g,
 
 export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   // Dispara os fetches em paralelo
-  const [resultCsv, consumoCsv, validadeCsv, abcCsv] = await Promise.all([
+  const [resultCsv, consumoCsv, validadeCsv, abcCsv, contValidCsv] = await Promise.all([
     fetch('./data/result%20(17).csv').then(res => res.text()).catch(() => ''),
     fetch('./data/consumo%20insingt.csv').then(res => res.text()).catch(() => ''),
     fetch('./data/conf%20insgith.csv').then(res => res.text()).catch(() => ''),
-    fetch('./data/R_C_ABC_CONSUMO_CONSO%20(3).csv').then(res => res.text()).catch(() => '')
+    fetch('./data/R_C_ABC_CONSUMO_CONSO%20(3).csv').then(res => res.text()).catch(() => ''),
+    fetch('./data/R_CONT_VALID.csv').then(res => res.text()).catch(() => '')
   ]);
 
   // 1️⃣ PARSE: RESULT (Abastecimento Típico)
@@ -346,6 +347,48 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     }
   });
 
+  // 3b️⃣ PARSE: R_CONT_VALID (DETALHADO)
+  const contValidItems: TVValidadeItem[] = [];
+  if (contValidCsv && contValidCsv.length > 500) {
+    const contParsed = Papa.parse<{ [key: string]: string }>(contValidCsv, { header: false, delimiter: ',', skipEmptyLines: true }).data;
+    let currentEstoqueNum = "";
+    
+    contParsed.forEach((row: any) => {
+      const cols = Object.values(row) as string[];
+      const raw = cols.map(c => (c || '').trim());
+      
+      // Identifica Estoque
+      if (raw[1] === "Estoque:") {
+        currentEstoqueNum = raw[5] || "";
+      }
+
+      // Identifica Linha de Produto
+      const codProd = raw[0] || "";
+      const validadeStr = raw[11] || "";
+      
+      if (/^\d+$/.test(codProd) && /^\d{2}\/\d{2}\/\d{4}$/.test(validadeStr)) {
+        const produto = raw[5] || "ITEM DESCONHECIDO";
+        const lote = raw[9] || "S/L";
+        const quantidade = parseBrNumber(raw[13]);
+        
+        const [dd, mm, yyyy] = validadeStr.split('/');
+        const dateObj = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+        const diffDays = Math.ceil((dateObj.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+        contValidItems.push({
+          produto,
+          lote,
+          validadeStr,
+          validadeData: dateObj,
+          diasParaVencer: diffDays,
+          quantidade,
+          estoqueAtual: quantidade,
+          estoqueNum: currentEstoqueNum
+        });
+      }
+    });
+  }
+
   // KPIs de consumo
   const totalPecasConsumidas = consumosOrdenados.reduce((s, c) => s + c.qtdConsumo, 0);
   const kpisConsumo = consumosOrdenados.length > 0 ? {
@@ -431,8 +474,13 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     abcSummary: finalAbcSummary,
     abcItems: abcItems.length > 0 ? abcItems : undefined,
     consumos: consumosOrdenados,
-    validades: validades.sort((a, b) => a.diasParaVencer - b.diasParaVencer),
-    kpisValidade: { itensVencendo30d, itensVencendo90d, totalLotes: validades.length, totalProdutosEstoque: produtosDistintos },
+    validades: contValidItems.length > 0 ? contValidItems.sort((a,b) => a.diasParaVencer - b.diasParaVencer) : validades.sort((a, b) => a.diasParaVencer - b.diasParaVencer),
+    kpisValidade: contValidItems.length > 0 ? {
+      itensVencendo30d: contValidItems.filter(v => v.diasParaVencer <= 30 && v.diasParaVencer >= 0).length,
+      itensVencendo90d: contValidItems.filter(v => v.diasParaVencer <= 90 && v.diasParaVencer >= 0).length,
+      totalLotes: contValidItems.length,
+      totalProdutosEstoque: new Set(contValidItems.map(v => v.produto)).size
+    } : { itensVencendo30d, itensVencendo90d, totalLotes: validades.length, totalProdutosEstoque: produtosDistintos },
     kpisConsumo,
   };
 }

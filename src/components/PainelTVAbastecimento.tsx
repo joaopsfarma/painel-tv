@@ -118,7 +118,7 @@ interface AbastecimentoTVData {
   };
 }
 
-type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup' | 'consumo' | 'estoque_validade' | 'prescricoes_hora';
+type SlideType = 'dashboard' | 'rupturas' | 'cobertura_critica' | 'atrasados' | 'fornecedores' | 'curva_abc' | 'followup' | 'consumo' | 'estoque_validade' | 'prescricoes_hora' | 'dash_validade';
 
 interface Slide {
   type: SlideType;
@@ -716,6 +716,81 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
   );
 }
 
+// ── Sub-componente: Dashboard de Validade ──────────────────────────────────
+
+function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], kpis: any }) {
+  // Agrupar por mês/ano de vencimento
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const chartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const now = new Date();
+    
+    // Pegamos os próximos 6 meses
+    for (let i = 0; i < 6; i++) {
+       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+       const key = `${months[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
+       counts[key] = 0;
+    }
+
+    validades.forEach(v => {
+      const d = v.validadeData;
+      if (d > now) {
+        const key = `${months[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
+        if (counts[key] !== undefined) counts[key] += v.quantidade;
+      }
+    });
+
+    return Object.entries(counts).map(([name, total]) => ({ name, total }));
+  }, [validades]);
+
+  return (
+    <div className="flex flex-col gap-6 h-full">
+      {/* KPIs Grid */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5">
+           <p className="text-xs font-bold text-red-400 uppercase mb-1">Vence &lt; 30 Dias</p>
+           <p className="text-4xl font-black text-red-500">{kpis.itensVencendo30d}</p>
+        </div>
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5">
+           <p className="text-xs font-bold text-amber-400 uppercase mb-1">Vence &lt; 90 Dias</p>
+           <p className="text-4xl font-black text-amber-500">{kpis.itensVencendo90d}</p>
+        </div>
+        <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-5">
+           <p className="text-xs font-bold text-purple-400 uppercase mb-1">Lotes Monitorados</p>
+           <p className="text-4xl font-black text-purple-500">{kpis.totalLotes}</p>
+        </div>
+        <div className="bg-slate-800/60 border border-slate-700/30 rounded-xl p-5">
+           <p className="text-xs font-bold text-slate-400 uppercase mb-1">Estoque Total</p>
+           <p className="text-4xl font-black text-white">{validades.reduce((s,v) => s + v.quantidade, 0).toLocaleString('pt-BR')}</p>
+        </div>
+      </div>
+
+      {/* Gráfico de Projeção */}
+      <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 flex flex-col">
+        <p className="text-sm font-bold text-slate-400 uppercase mb-6">Projeção de Vencimento (Próximos 6 Meses)</p>
+        <div className="flex-1 min-h-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+              <XAxis dataKey="name" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
+                cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+              />
+              <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : index === 1 ? '#f59e0b' : '#3b82f6'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Sub-componente: Consumo Financeiro ──────────────────────────────────────
 
 function SlideConsumoABC({ consumos, abc }: { consumos: TVConsumoItem[], abc?: ABCSummary }) {
@@ -1029,14 +1104,17 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
     //   result.push({ type: 'consumo', pageIndex: 0, totalPages: 1 });
     // }
 
-    // Slide Validade Estoque (DESATIVADO - reformulação pendente)
-    // if (tvData.validades && tvData.validades.length > 0) {
-    //   const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90).slice(0, 30);
-    //   if (expiring.length > 0) {
-    //     const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
-    //     for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
-    //   }
-    // }
+    // Slide Validade Estoque (REATIVADO)
+    if (tvData.validades && tvData.validades.length > 0) {
+      // Lista de itens
+      const expiring = tvData.validades.filter(v => v.diasParaVencer <= 120).slice(0, 30);
+      if (expiring.length > 0) {
+        const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
+        for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
+      }
+      // Dashboard Gráfico
+      result.push({ type: 'dash_validade', pageIndex: 0, totalPages: 1 });
+    }
 
     // Slides Follow Up
     if (followUpKpis && followUpKpis.atrasados > 0) {
@@ -1179,6 +1257,14 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
         iconColor: 'text-purple-400',
         iconPulse: true,
         progressColor: 'from-purple-600 to-lime-400',
+        theme: 'blue' as const,
+      },
+      dash_validade: {
+        title: 'DASHBOARD — CONTROLE DE VALIDADES',
+        icon: CalendarClock,
+        iconColor: 'text-amber-400',
+        iconPulse: true,
+        progressColor: 'from-amber-600 to-red-400',
         theme: 'blue' as const,
       },
     };
@@ -1463,6 +1549,9 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
             )}
             {currentSlide.type === 'prescricoes_hora' && (
               <SlidePrescricoesHora />
+            )}
+            {currentSlide.type === 'dash_validade' && tvData!.validades && (
+              <SlideDashValidade validades={tvData!.validades} kpis={tvData!.kpisValidade} />
             )}
           </motion.div>
         </AnimatePresence>
