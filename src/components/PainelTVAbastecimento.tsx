@@ -190,89 +190,102 @@ function DashboardSlide({ kpis, healthStatus, savedAt, followUpKpis }: {
       label: 'Rupturas / Em Falta',
       value: kpis.emFalta,
       icon: PackageX,
-      color: 'text-red-400',
-      bg: 'bg-red-500/20',
-      border: 'border-red-500/40',
+      color: 'text-red-600',
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      iconBg: 'bg-red-100',
       glow: kpis.emFalta > 0,
     },
     {
       label: 'Cobertura Crítica',
       value: kpis.coberturaCritica,
       icon: TrendingDown,
-      color: 'text-orange-400',
-      bg: 'bg-orange-500/20',
-      border: 'border-orange-500/40',
+      color: 'text-orange-600',
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      iconBg: 'bg-orange-100',
       glow: kpis.coberturaCritica > 0,
     },
     {
       label: 'Pedidos Atrasados',
       value: kpis.atrasados,
       icon: Clock,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/20',
-      border: 'border-amber-500/40',
+      color: 'text-purple-600',
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      iconBg: 'bg-purple-100',
       glow: kpis.atrasados > 0,
     },
     {
-      label: 'Alto Custo',
-      value: kpis.altoCusto,
+      label: 'Valor Total',
+      value: followUpKpis?.total || kpis.total,
       icon: DollarSign,
-      color: 'text-indigo-400',
-      bg: 'bg-indigo-500/20',
-      border: 'border-indigo-500/40',
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      iconBg: 'bg-emerald-100',
       glow: false,
     },
   ];
 
   const statusConfig = {
-    'CRÍTICO': { color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/50', label: 'SITUAÇÃO CRÍTICA' },
-    'ALERTA':  { color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/50', label: 'EM ALERTA' },
-    'OK':      { color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/50', label: 'TUDO SOB CONTROLE' },
+    'CRÍTICO': { color: 'text-red-700', bg: 'bg-red-100', border: 'border-red-300', label: 'SITUAÇÃO CRÍTICA' },
+    'ALERTA':  { color: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-300', label: 'EM ALERTA' },
+    'OK':      { color: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-300', label: 'OPERANDO EM CONFORMIDADE' },
   };
   const sc = statusConfig[healthStatus];
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      {/* Status global */}
-      <div className={`flex items-center justify-center gap-3 py-3 rounded-2xl border ${sc.bg} ${sc.border}`}>
+    <div className="flex flex-col gap-8 h-full p-2">
+      {/* Status global - Estilo Rede Américas */}
+      <div className={`flex items-center justify-center gap-4 py-6 rounded-[3rem] border-4 shadow-xl ${sc.bg} ${sc.border}`}>
         {healthStatus === 'OK'
-          ? <ShieldCheck className={`w-7 h-7 ${sc.color}`} />
-          : <AlertCircle className={`w-7 h-7 ${sc.color} animate-pulse`} />
+          ? <ShieldCheck className={`w-12 h-12 ${sc.color}`} />
+          : <AlertCircle className={`w-12 h-12 ${sc.color} animate-pulse`} />
         }
-        <span className={`text-2xl font-black tracking-widest uppercase ${sc.color}`}>{sc.label}</span>
+        <span className={`text-5xl font-black tracking-tighter uppercase ${sc.color}`}>{sc.label}</span>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+      {/* KPI Cards Principal */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 flex-1">
         {kpiCards.map((card) => (
           <div
             key={card.label}
-            className={`rounded-2xl border ${card.bg} ${card.border} p-5 flex flex-col items-center justify-center gap-3 relative overflow-hidden ${card.glow ? 'shadow-lg' : ''}`}
+            className={`bg-white rounded-[2.5rem] border-2 ${card.border} p-8 flex flex-col items-center justify-center gap-6 relative shadow-2xl shadow-slate-200 transition-all`}
           >
+            <div className={`p-5 rounded-2xl ${card.iconBg}`}>
+               <card.icon className={`w-12 h-12 ${card.color}`} />
+            </div>
+            <div className="text-center">
+              <div className={`text-7xl font-black ${card.color} tracking-tighter`}>
+                <AnimatedCount target={card.value} />
+              </div>
+              <div className="text-slate-500 font-extrabold uppercase text-xs tracking-[0.2em] mt-3 whitespace-nowrap">{card.label}</div>
+            </div>
             {card.glow && (
-              <div className={`absolute inset-0 ${card.bg} animate-pulse opacity-40`} />
+               <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[60px] opacity-20 ${card.color.replace('text', 'bg')}`} />
             )}
-            <div className={`p-3 rounded-xl ${card.bg} relative z-10`}>
-              <card.icon className={`w-8 h-8 ${card.color}`} />
-            </div>
-            <div className={`text-6xl font-black ${card.color} relative z-10`}>
-              <AnimatedCount target={card.value} />
-            </div>
-            <div className="text-slate-400 text-sm font-semibold text-center relative z-10">{card.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Métricas complementares */}
+      {/* Métricas complementares - Tema Claro */}
       <div className={`grid gap-4 ${followUpKpis ? 'grid-cols-3 lg:grid-cols-6' : 'grid-cols-3'}`}>
-        <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
-          <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Taxa de Ruptura</div>
-          <div className={`text-3xl font-black ${kpis.taxaRuptura > 2 ? 'text-red-400' : 'text-emerald-400'}`}>
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
+          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Taxa de Ruptura</div>
+          <div className={`text-3xl font-black ${kpis.taxaRuptura > 2 ? 'text-red-500' : 'text-emerald-500'}`}>
             {kpis.taxaRuptura}<span className="text-lg">%</span>
           </div>
-          <div className="text-[10px] text-slate-500 mt-1">Meta: &lt; 2%</div>
+          <div className="text-[10px] text-slate-400 font-bold mt-1">Meta: &lt; 2%</div>
         </div>
-        <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 text-center">
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
+          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Conformidade</div>
+          <div className="text-3xl font-black text-purple-600">
+            {kpis.taxaConformidade}<span className="text-lg">%</span>
+          </div>
+          <div className="text-[10px] text-slate-400 font-bold mt-1">Estoque Ideal</div>
+        </div>
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 text-center shadow-sm">
           <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Cobertura Média</div>
           <div className={`text-3xl font-black ${kpis.coberturaMedia < 7 ? 'text-red-400' : kpis.coberturaMedia <= 30 ? 'text-emerald-400' : 'text-amber-400'}`}>
             {kpis.coberturaMedia}<span className="text-lg"> dias</span>
@@ -486,23 +499,23 @@ function SlideAbcOficial({ abcItems, abc }: { abcItems: TVAbcItem[]; abc: ABCSum
           const pctCount = total > 0 ? ((c.count / total) * 100).toFixed(1) : '0';
           const pctVal = valTotal > 0 ? ((c.value / valTotal) * 100).toFixed(1) : '0';
           return (
-            <div key={c.name} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex flex-col justify-between" style={{ borderLeftColor: c.fill, borderLeftWidth: 4 }}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-black text-white">{c.name}</span>
-                <span className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: `${c.fill}20`, color: c.fill }}>
-                  {pctVal}% VALOR
+            <div key={c.name} className="bg-white border-2 border-slate-100 rounded-[1.5rem] p-6 flex flex-col justify-between shadow-sm" style={{ borderLeftColor: c.fill, borderLeftWidth: 8 }}>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-xl font-black text-slate-800 uppercase">{c.name}</span>
+                <span className="text-[10px] font-black px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+                  {pctVal}% DO VALOR TOTAL
                 </span>
               </div>
               <div className="flex justify-between items-end">
                 <div>
-                  <p className="text-sm text-slate-400 font-semibold mb-1">Custo Acumulado</p>
-                  <p className="text-2xl font-black" style={{ color: c.fill }}>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Custo Acumulado</p>
+                  <p className="text-3xl font-black" style={{ color: c.fill }}>
                     R$ {c.value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-black text-white">{c.count}</p>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase">{pctCount}% itens</p>
+                  <p className="text-4xl font-black text-slate-800 tracking-tighter">{c.count}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{pctCount}% ITENS</p>
                 </div>
               </div>
             </div>
@@ -579,17 +592,8 @@ function SlidePrescricoesHora() {
   const total = PRESC_DATA.reduce((acc, d) => acc + d.val, 0);
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-6 h-full p-2">
       {/* KPIs no topo */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-6">
-          <p className="text-sm text-purple-300 font-bold uppercase mb-1">Total Prescrições (24h)</p>
-          <p className="text-5xl font-black text-purple-400">{total}</p>
-        </div>
-        <div className="bg-lime-500/15 border border-lime-500/40 rounded-xl p-6">
-          <p className="text-sm text-lime-300 font-bold uppercase mb-1">Horário de Pico</p>
-          <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-black text-lime-400">11:00</span>
             <span className="text-xl font-bold text-lime-500/70">{peak} presc.</span>
           </div>
         </div>
@@ -746,86 +750,87 @@ function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], k
   }, [validades]);
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-6 h-full p-2">
       {/* ── SEÇÃO SUPERIOR: KPIs FINANCEIROS ── */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-red-500/15 border border-red-500/40 rounded-2xl p-6">
-           <p className="text-xs font-bold text-red-300 uppercase mb-2">Valor em Risco (90 dias)</p>
-           <p className="text-4xl font-black text-red-500">
+      <div className="grid grid-cols-4 gap-6">
+        <div className="bg-white border-2 border-red-100 rounded-[2rem] p-8 shadow-xl shadow-red-50">
+           <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3">Valor em Risco (90 dias)</p>
+           <p className="text-5xl font-black text-red-600 tracking-tighter">
              R$ {kpis.valorEmRisco90d.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
            </p>
-           <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+           <div className="mt-4 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
              <div 
                className="h-full bg-red-500" 
                style={{ width: `${(kpis.valorEmRisco90d / kpis.valorTotalEstoque * 100) || 0}%` }} 
              />
            </div>
         </div>
-        <div className="bg-purple-500/15 border border-purple-500/40 rounded-2xl p-6">
-           <p className="text-xs font-bold text-purple-300 uppercase mb-2">Valor Total Monitorado</p>
-           <p className="text-4xl font-black text-purple-400">
+        <div className="bg-white border-2 border-purple-100 rounded-[2rem] p-8 shadow-xl shadow-purple-50">
+           <p className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-3">Valor Total Monitorado</p>
+           <p className="text-5xl font-black text-purple-600 tracking-tighter">
              R$ {kpis.valorTotalEstoque.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
            </p>
         </div>
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-           <p className="text-xs font-bold text-slate-400 uppercase mb-2">Lotes Analisados</p>
-           <p className="text-4xl font-black text-white">{kpis.totalLotes}</p>
+        <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 shadow-xl shadow-slate-50">
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Lotes Analisados</p>
+           <p className="text-5xl font-black text-slate-800 tracking-tighter">{kpis.totalLotes}</p>
         </div>
-        <div className="bg-lime-500/15 border border-lime-500/40 rounded-2xl p-6">
-           <p className="text-xs font-bold text-lime-300 uppercase mb-2">Estoque Crítico</p>
-           <p className="text-4xl font-black text-lime-400">{estoqueRiskData[0]?.name || 'N/A'}</p>
+        <div className="bg-white border-2 border-emerald-100 rounded-[2rem] p-8 shadow-xl shadow-emerald-50">
+           <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3">Estoque Crítico</p>
+           <p className="text-5xl font-black text-emerald-600 tracking-tighter">{estoqueRiskData[0]?.name?.split(' ')[1] || 'N/A'}</p>
         </div>
       </div>
 
       <div className="flex gap-6 flex-1 min-h-0">
         {/* ── COLUNA ESQUERDA: RANKING DE ESTOQUES ── */}
-        <div className="w-[40%] bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 flex flex-col">
-          <p className="text-sm font-bold text-slate-300 uppercase mb-6 flex items-center gap-2">
-            <Monitor className="w-4 h-4 text-purple-400" />
-            Risco Financeiro por Localização
+        <div className="w-[40%] bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 flex flex-col shadow-2xl shadow-slate-100">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-purple-500" />
+            Risco por Localização
           </p>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={estoqueRiskData} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={14} fontWeight="bold" axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={14} fontWeight="black" axisLine={false} tickLine={false} />
                 <Tooltip 
                   formatter={(val: any) => `R$ ${Number(val).toLocaleString('pt-BR')}`}
-                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px' }}
+                  contentStyle={{ backgroundColor: '#fff', border: '2px solid #f1f5f9', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
-                <Bar dataKey="value" fill="#a855f7" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="value" fill="#7c3aed" radius={[0, 10, 10, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* ── COLUNA DIREITA: TOP ITENS EM RISCO ── */}
-        <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 flex flex-col">
-          <p className="text-sm font-bold text-red-400 uppercase mb-6">
-            Top 5 Lotes com Maior Perda em Potencial
+        <div className="flex-1 bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 flex flex-col shadow-2xl shadow-slate-100">
+          <p className="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-red-500" />
+            Top 5 Lotes (Perda Potencial)
           </p>
-          <div className="flex flex-col gap-3 flex-1">
+          <div className="flex flex-col gap-4 flex-1">
             {topExpiringItems.map((item, idx) => (
-              <div key={`${item.produto}-${idx}`} className="bg-slate-900/60 border border-slate-700/30 rounded-2xl p-4 flex justify-between items-center transition-all hover:bg-slate-900">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="bg-red-500/10 text-red-500 font-bold text-xl w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div key={`${item.produto}-${idx}`} className="bg-slate-50/50 border border-slate-100 rounded-[1.5rem] p-5 flex justify-between items-center transition-all hover:bg-white hover:shadow-md">
+                <div className="flex items-center gap-5 min-w-0">
+                  <div className="bg-red-600 text-white font-black text-xl w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-100">
                     {idx + 1}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-white font-black text-sm truncate">{toTitleCase(item.produto)}</p>
-                    <div className="flex gap-3 text-[11px] text-slate-500 mt-1 uppercase font-bold">
-                      <span className="text-red-400">Vence: {item.validadeStr}</span>
+                    <p className="text-slate-900 font-extrabold text-base truncate uppercase">{toTitleCase(item.produto)}</p>
+                    <div className="flex gap-4 text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest">
+                      <span className="text-red-500">Expira: {item.validadeStr}</span>
                       <span>Lote: {item.lote}</span>
-                      <span className="text-purple-400">Est: {item.estoqueNum}</span>
+                      <span className="text-purple-600">Almox: {item.estoqueNum}</span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-4">
-                  <p className="text-2xl font-black text-white">
+                  <p className="text-3xl font-black text-slate-800 tracking-tighter">
                     R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">{item.quantidade} UNIDADES</p>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{item.quantidade} UNIDADES</p>
                 </div>
               </div>
             ))}
@@ -1333,13 +1338,15 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
     return (
       <div ref={containerRef} className="min-h-screen bg-slate-900 flex items-center justify-center font-sans">
         <div className="max-w-md w-full mx-auto p-8 text-center">
-          <div className="w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-700">
-            <Tv2 className="w-10 h-10 text-slate-500" />
+      <div ref={containerRef} className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans">
+        <div className="max-w-md w-full mx-auto p-8 text-center bg-white rounded-[2rem] shadow-xl border border-slate-100">
+          <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Tv2 className="w-10 h-10 text-slate-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Nenhum dado disponível</h2>
-          <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Nenhum dado disponível</h2>
+          <p className="text-slate-500 text-sm mb-6 leading-relaxed">
             Para usar o Painel TV, acesse primeiro a aba{' '}
-            <strong className="text-purple-400">Visão de Abastecimento</strong> e importe
+            <strong className="text-purple-600">Visão de Abastecimento</strong> e importe
             um arquivo CSV. Os dados serão salvos automaticamente para exibição aqui.
           </p>
           <button
@@ -1360,45 +1367,57 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   if (!isPlaying) {
     const savedDate = new Date(tvData.savedAt).toLocaleString('pt-BR');
     const alertBadges = [
-      { label: 'rupturas', value: tvData.kpis.emFalta, color: 'bg-red-500/20 text-red-300 border-red-500/40' },
-      { label: 'cob. crítica', value: tvData.kpis.coberturaCritica, color: 'bg-orange-500/20 text-orange-300 border-orange-500/40' },
-      { label: 'atrasados', value: tvData.kpis.atrasados, color: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-      { label: 'total itens', value: tvData.kpis.total, color: 'bg-purple-500/20 text-purple-300 border-purple-500/40' },
-      ...(followUpKpis ? [{ label: 'OCs atrasadas', value: followUpKpis.atrasados, color: 'bg-rose-500/20 text-rose-300 border-rose-500/40' }] : []),
+      { label: 'rupturas', value: tvData.kpis.emFalta, color: 'bg-red-50 border-red-100 text-red-600' },
+      { label: 'cob. crítica', value: tvData.kpis.coberturaCritica, color: 'bg-orange-50 border-orange-100 text-orange-600' },
+      { label: 'atrasados', value: tvData.kpis.atrasados, color: 'bg-amber-50 border-amber-100 text-amber-600' },
+      { label: 'total itens', value: tvData.kpis.total, color: 'bg-purple-50 border-purple-100 text-purple-600' },
+      ...(followUpKpis ? [{ label: 'OCs atrasadas', value: followUpKpis.atrasados, color: 'bg-red-50 border-red-100 text-red-600' }] : []),
     ];
 
     return (
-      <div ref={containerRef} className="min-h-screen bg-slate-900 flex items-center justify-center font-sans">
-        <div className="max-w-lg w-full mx-auto p-8 text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-violet-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-900/50">
-            <Monitor className="w-12 h-12 text-white" />
+      <div ref={containerRef} className="fixed inset-0 z-50 bg-[#f8fafc] flex items-center justify-center font-sans p-8">
+        <div className="w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl border-2 border-purple-100 p-16 text-center relative overflow-hidden">
+          {/* Decorações Américas */}
+          <div className="absolute top-0 left-0 w-48 h-48 bg-purple-600/5 rounded-br-[100%] transition-all" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-tl-[100%] transition-all" />
+          
+          <div className="bg-gradient-to-br from-purple-600 to-indigo-700 w-28 h-28 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-purple-200">
+            <Tv2 className="w-14 h-14 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-1">Painel TV — Rede Américas</h1>
-          <p className="text-purple-300 font-semibold mb-2">Abastecimento Farmacêutico & Follow Up</p>
-          <p className="text-slate-500 text-xs mb-8">Dados salvos em: {savedDate}</p>
-
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            {alertBadges.map(b => (
-              <div key={b.label} className={`rounded-xl border px-4 py-3 ${b.color}`}>
-                <div className="text-3xl font-black">{b.value}</div>
-                <div className="text-xs font-semibold uppercase tracking-wider opacity-80 mt-0.5">{b.label}</div>
+          
+          <h1 className="text-6xl font-black text-slate-900 mb-4 tracking-tighter">Portal de Abastecimento</h1>
+          <p className="text-2xl font-black text-purple-600 mb-2 uppercase tracking-[0.3em]">Rede Américas</p>
+          <div className="h-2 w-32 bg-gradient-to-r from-purple-600 to-emerald-500 mx-auto mb-12 rounded-full" />
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {alertBadges.slice(0, 4).map(b => (
+              <div key={b.label} className={`rounded-[2rem] border-2 p-8 flex flex-col items-center justify-center transition-all hover:scale-105 shadow-sm ${b.color}`}>
+                <div className="text-6xl font-black tracking-tighter mb-2">{b.value}</div>
+                <div className="text-xs font-black uppercase tracking-[0.2em] opacity-80">{b.label}</div>
               </div>
             ))}
           </div>
 
-          <button
-            onClick={handleStart}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-500 hover:to-violet-600 text-white font-black text-lg py-4 rounded-2xl shadow-xl shadow-purple-900/40 transition-all"
-          >
-            <Play className="w-6 h-6" /> INICIAR PAINEL E ÁUDIO
-          </button>
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={handleStart}
+              className="group relative w-full inline-flex items-center justify-center gap-6 bg-slate-900 hover:bg-black text-white font-black text-3xl py-10 rounded-[3rem] shadow-2xl transition-all active:scale-95"
+            >
+              <Play className="w-10 h-10 fill-current text-emerald-400 group-hover:scale-110 transition-transform" /> 
+              INICIAR MONITORAMENTO
+            </button>
+            
+            <button
+              onClick={onBack}
+              className="mt-6 text-slate-400 hover:text-purple-600 font-bold text-sm flex items-center gap-2 mx-auto transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" /> Retornar à Tela Principal
+            </button>
+          </div>
 
-          <button
-            onClick={onBack}
-            className="mt-4 text-slate-500 hover:text-slate-300 text-sm flex items-center gap-1.5 mx-auto transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar para Abastecimento
-          </button>
+          <p className="mt-12 text-slate-300 text-[10px] font-bold uppercase tracking-widest">
+            Última Sincronização: {savedDate}
+          </p>
         </div>
       </div>
     );
@@ -1433,21 +1452,20 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   const currentSlide = slides[slideIndex];
 
   const statusBadgeColors = {
-    CRÍTICO: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse',
-    ALERTA:  'bg-amber-500/20 text-amber-400 border-amber-500/40',
-    OK:      'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+    CRÍTICO: 'bg-red-50 border-red-200 text-red-600 shadow-red-100',
+    ALERTA:  'bg-amber-50 border-amber-200 text-amber-600 shadow-amber-100',
+    OK:      'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-emerald-100',
   };
 
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-slate-900 flex flex-col font-sans select-none"
+      className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans select-none"
     >
-      {/* ── HEADER ── */}
-      <header className="bg-slate-950/80 border-b border-slate-800/60 backdrop-blur-sm px-6 py-3 flex-shrink-0">
+      {/* ── HEADER LIGHT ── */}
+      <header className="bg-white border-b-2 border-purple-100 px-6 py-4 flex-shrink-0 shadow-sm">
         {/* Linha superior: info geral */}
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-slate-500 text-xs">
             <Monitor className="w-3.5 h-3.5" />
             <span>Painel TV · Rede Américas · Abastecimento & Follow Up</span>
           </div>
