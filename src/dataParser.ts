@@ -368,8 +368,6 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   if (abcCsv && abcCsv.length > 100) {
     const abcParsed = Papa.parse<{ [key: string]: string }>(abcCsv, { header: false, delimiter: ',', skipEmptyLines: true }).data;
     
-    let lastProduto = '';
-
     abcParsed.forEach((row: any) => {
       const cols = Object.values(row) as string[];
       const raw = cols.map(c => (c || '').trim());
@@ -388,8 +386,6 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         const custoAcumulado = parseBrNumber(raw[14]);
         const percAcum = parseBrNumber(raw[16]);
 
-        lastProduto = produto;
-
         if (vlCustoPeriodo > 0) {
           abcItems.push({
             seq, cod, produto, unidade, custoUnit, qtdConsumo,
@@ -403,7 +399,6 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         // As próximas linhas têm os totais
       }
       if (raw[1] && raw[1].includes('N. de Valores(A)') && raw[5]) {
-        const countA = parseInt(raw[5]) || 0;
         // Vamos construir o summary após ter percorrido tudo
       }
     });
