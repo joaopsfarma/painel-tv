@@ -1473,93 +1473,55 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans select-none"
+      className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans select-none text-slate-900"
     >
       {/* ── HEADER LIGHT ── */}
-      <header className="bg-white border-b-2 border-purple-100 px-6 py-4 flex-shrink-0 shadow-sm">
+      <header className="bg-white border-b-2 border-purple-100 px-6 py-4 flex-shrink-0 shadow-sm relative z-10">
         {/* Linha superior: info geral */}
-        <div className="flex items-center justify-between mb-2">
-            <Monitor className="w-3.5 h-3.5" />
-            <span>Painel TV · Rede Américas · Abastecimento & Follow Up</span>
+        <div className="flex items-center justify-between mb-3 text-slate-400 font-bold uppercase tracking-widest text-[9px]">
+          <div className="flex items-center gap-2">
+            <Monitor className="w-3.5 h-3.5 text-purple-500" />
+            <span>Rede Américas · Inteligência de Abastecimento</span>
           </div>
-          <div className="flex items-center gap-2 text-slate-400 text-sm font-mono">
-            <Clock className="w-4 h-4" />
-            {currentTime.toLocaleTimeString('pt-BR')}
+          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+            <Clock className="w-4 h-4 text-purple-600" />
+            <span className="text-slate-600 tabular-nums">{currentTime.toLocaleTimeString('pt-BR')}</span>
           </div>
-          <div className="text-slate-500 text-xs">
-            Slide {slideIndex + 1} / {slides.length}
+          <div className="flex items-center gap-2">
+            <span>SLIDE {slideIndex + 1} / {slides.length}</span>
           </div>
         </div>
 
         {/* Linha principal */}
         <div className="flex items-center justify-between gap-4">
-          {/* Título do slide */}
-          <div className="flex items-center gap-3">
-            <div className={cfg.iconPulse ? 'animate-pulse' : ''}>
-              <cfg.icon className={`w-7 h-7 ${cfg.iconColor}`} />
+          <div className="flex items-center gap-4">
+            <div className={`p-4 rounded-[1.25rem] bg-gradient-to-br ${cfg.progressColor} shadow-lg shadow-purple-100 ${cfg.iconPulse ? 'animate-pulse' : ''}`}>
+              <cfg.icon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-white font-black text-xl tracking-wide">{cfg.title}</h2>
+              <h2 className="text-slate-900 font-black text-2xl tracking-tighter leading-none uppercase">{cfg.title}</h2>
               {currentSlide.totalPages > 1 && (
-                <p className="text-slate-500 text-xs">
-                  Página {currentSlide.pageIndex + 1} de {currentSlide.totalPages}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-600 transition-all duration-1000" style={{ width: `${((currentSlide.pageIndex + 1) / currentSlide.totalPages) * 100}%` }} />
+                  </div>
+                  <p className="text-slate-400 text-[10px] font-black uppercase">
+                    Página {currentSlide.pageIndex + 1} de {currentSlide.totalPages}
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Status badge */}
-          <div className={`px-4 py-1.5 rounded-xl border text-sm font-black tracking-widest ${statusBadgeColors[healthStatus]}`}>
-            {healthStatus === 'CRÍTICO' && <Zap className="w-4 h-4 inline mr-1.5" />}
-            {healthStatus === 'ALERTA' && <AlertTriangle className="w-4 h-4 inline mr-1.5" />}
-            {healthStatus === 'OK' && <ShieldCheck className="w-4 h-4 inline mr-1.5" />}
+          <div className={`px-6 py-2.5 rounded-2xl border-2 text-xs font-black tracking-widest flex items-center gap-2 shadow-sm ${statusBadgeColors[healthStatus]}`}>
+            {healthStatus === 'OK' ? <ShieldCheck className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
             {healthStatus}
           </div>
 
-          {/* Controles */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSlideIndex(prev => (prev - 1 + slides.length) % slides.length)}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title="Slide anterior"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setSlideIndex(prev => (prev + 1) % slides.length)}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title="Próximo slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setIsSoundEnabled(s => !s)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSoundEnabled ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-800 text-slate-500 hover:text-slate-300'}`}
-              title={isSoundEnabled ? 'Desativar som' : 'Ativar som'}
-            >
-              {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={toggleFullscreen}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title={isFullscreen ? 'Sair do fullscreen' : 'Fullscreen'}
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => setIsPlaying(false)}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title="Pausar painel"
-            >
-              <Pause className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onBack}
-              className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              title="Voltar para Abastecimento"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-3">
+             <button onClick={() => setSlideIndex(prev => (prev - 1 + slides.length) % slides.length)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 border border-slate-100 transition-all shadow-sm"><ChevronLeft className="w-6 h-6" /></button>
+             <button onClick={() => setIsPlaying(!isPlaying)} className="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xl shadow-purple-100">{isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}</button>
+             <button onClick={() => setSlideIndex(prev => (prev + 1) % slides.length)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-purple-600 border border-slate-100 transition-all shadow-sm"><ChevronRight className="w-6 h-6" /></button>
           </div>
         </div>
       </header>
