@@ -6,7 +6,7 @@ import {
   ArrowLeft, Zap, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, CartesianGrid } from 'recharts';
 import { type FollowUpItem } from '../types';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
@@ -598,38 +598,45 @@ function SlidePrescricoesHora() {
       </div>
 
       {/* Gráfico Principal */}
-      <div className="flex-1 min-h-[500px] bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
+      <div className="flex-1 min-h-[500px] bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={PRESC_DATA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+          <LineChart data={PRESC_DATA} margin={{ top: 30, right: 30, left: 10, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={true} />
             <XAxis 
               dataKey="hour" 
-              stroke="#94a3b8" 
-              fontSize={14} 
-              fontWeight="bold"
-              axisLine={false}
-              tickLine={false}
+              stroke="#64748b" 
+              fontSize={12} 
+              axisLine={true}
+              tickLine={true}
               dy={10}
             />
             <YAxis 
-              stroke="#94a3b8" 
-              fontSize={14} 
-              fontWeight="bold"
-              axisLine={false}
-              tickLine={false}
+              stroke="#64748b" 
+              fontSize={12} 
+              axisLine={true}
+              tickLine={true}
+              domain={[0, 60]}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff' }}
-              itemStyle={{ color: '#a855f7', fontWeight: 'bold' }}
-              cursor={{ fill: 'rgba(168, 85, 247, 0.1)' }}
+              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
             />
-            <Bar 
+            <Line 
+              type="monotone" 
               dataKey="val" 
-              fill="#a855f7" 
-              radius={[6, 6, 0, 0]}
+              stroke="#4f46e5" 
+              strokeWidth={2}
+              dot={{ r: 6, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
+              activeDot={{ r: 8 }}
               animationDuration={2000}
-            />
-          </BarChart>
+            >
+              <LabelList 
+                dataKey="val" 
+                position="top" 
+                offset={15} 
+                style={{ fill: '#334155', fontSize: '14px', fontWeight: 'bold' }} 
+              />
+            </Line>
+          </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
