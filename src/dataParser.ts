@@ -368,13 +368,20 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
 
       // Identifica Linha de Produto
       const codProd = raw[0] || "";
-      const validadeStr = raw[11] || "";
+      // Verifica se a linha tem o formato de dados (Código numérico e presença de algo que parece data)
+      const possibleVal = raw[10] || raw[11] || "";
       
-      if (/^\d+$/.test(codProd) && /^\d{2}\/\d{2}\/\d{4}$/.test(validadeStr)) {
-        const produto = raw[5] || "ITEM DESCONHECIDO";
-        const lote = raw[9] || "S/L";
-        const quantidade = parseBrNumber(raw[13]);
-        const valorTotal = parseBrNumber(raw[14]);
+      if (/^\d+$/.test(codProd) && /^\d{2}\/\d{2}\/\d{4}$/.test(possibleVal)) {
+        // Nome: Geralmente no índice 2
+        const produto = (raw[2] || raw[3] || raw[4] || raw[5] || "ITEM DESCONHECIDO").replace(/"/g, '').trim();
+        // Lote: Geralmente no índice 7 ou 8 ou 9
+        const lote = (raw[7] || raw[8] || raw[9] || "S/L").replace(/"/g, '').trim();
+        // Validade: capturada anteriormente
+        const validadeStr = possibleVal;
+        // Quantidade: Geralmente no índice 12 ou 13
+        const quantidade = parseBrNumber(raw[12] || raw[13]);
+        // Valor: Geralmente no índice 13 ou 14
+        const valorTotal = parseBrNumber(raw[13] || raw[14] || raw[15]);
         
         const [dd, mm, yyyy] = validadeStr.split('/');
         const dateObj = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
