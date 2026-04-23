@@ -237,9 +237,10 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     if (norm.length < 5) return;
     
     // Se a primeira coluna de dado (índice 1 no CSV raw) contiver texto não-data, pode ser um novo produto
-    const possivelProduto = norm[2] && isNaN(parseBrNumber(norm[2])) ? norm[2] : null;
-    if (possivelProduto && possivelProduto.length > 5 && !possivelProduto.includes('/')) {
-      currentProduct = possivelProduto;
+    const isCodigoProduto = norm[1] && !isNaN(parseBrNumber(norm[1]));
+    const isNomeProduto = norm[2] && norm[2].length > 3 && !/^\d{2}\/\d{2}\/\d{4}$/.test(norm[2]);
+    if (isCodigoProduto && isNomeProduto) {
+      currentProduct = norm[2];
     }
 
     // Procura por data válido no formato DD/MM/YYYY

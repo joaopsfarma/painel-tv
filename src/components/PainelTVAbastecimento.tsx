@@ -899,7 +899,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
 
     // Slide Validade Estoque
     if (tvData.validades && tvData.validades.length > 0) {
-      const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90);
+      const expiring = tvData.validades.filter(v => v.diasParaVencer <= 90).slice(0, 30);
       if (expiring.length > 0) {
         const pages = Math.ceil(expiring.length / ITEMS_PER_SLIDE);
         for (let p = 0; p < pages; p++) result.push({ type: 'estoque_validade', pageIndex: p, totalPages: pages });
