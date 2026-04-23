@@ -314,30 +314,34 @@ function ItemCard({ item, theme }: { item: TVItem; theme: 'red' | 'orange' | 'am
       <div className="flex-1 p-4 relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-mono text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">{item.codItem}</span>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-xs font-mono text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded">{item.codItem}</span>
               {item.curvABC && (
-                <span className="text-[10px] font-bold text-slate-400">Curva {item.curvABC}</span>
+                <span className="text-xs font-bold text-slate-400">Curva {item.curvABC}</span>
               )}
             </div>
-            <p className="text-white font-bold text-base leading-snug line-clamp-2">{item.descItem}</p>
-            <p className="text-slate-400 text-xs mt-1 truncate">{toTitleCase(item.fornec)}</p>
+            <p className="text-white font-black text-xl leading-snug line-clamp-2 mt-1">{toTitleCase(item.descItem)}</p>
+            <p className="text-slate-400 text-sm mt-1 truncate">{toTitleCase(item.fornec)}</p>
           </div>
           <div className="flex-shrink-0 text-right">
             {covDisplay}
             {item.diasAtraso > 0 && (
-              <div className={`text-xs font-semibold mt-1 border rounded px-1.5 py-0.5 ${c.badge}`}>
-                {item.diasAtraso}d atraso
+              <div className={`text-base font-semibold mt-1 border rounded px-2 py-1 ${c.badge}`}>
+                {item.diasAtraso} dias atraso
               </div>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3 mt-3 text-[11px] text-slate-500 border-t border-slate-700/50 pt-2">
-          <span>Estoque: <strong className="text-slate-300">{item.estoqDisp}</strong></span>
-          {item.ocNum && <span>OC: <strong className="text-slate-300">{item.ocNum}</strong></span>}
-          {item.ocEntrega && <span>Entrega: <strong className="text-slate-300">{item.ocEntrega}</strong></span>}
-          {item.altoCusto && <span className="text-indigo-400 font-semibold">• ALTO CUSTO</span>}
-          {item.importado && <span className="text-blue-400 font-semibold">• IMPORTADO</span>}
+        <div className="flex items-center justify-between mt-4 text-sm text-slate-500 border-t border-slate-700/50 pt-3">
+          <div className="flex gap-4">
+             <span>Estoque: <strong className="text-slate-300 text-base">{item.estoqDisp}</strong></span>
+             {item.ocNum && <span>OC: <strong className="text-slate-300 text-base">{item.ocNum}</strong></span>}
+             {item.ocEntrega && <span>Entrega: <strong className="text-slate-300 text-base">{item.ocEntrega}</strong></span>}
+          </div>
+          <div className="flex gap-2">
+             {item.altoCusto && <span className="text-indigo-400 font-bold tracking-wide uppercase px-2 py-0.5 bg-indigo-500/10 rounded">• ALTO CUSTO</span>}
+             {item.importado && <span className="text-blue-400 font-bold tracking-wide uppercase px-2 py-0.5 bg-blue-500/10 rounded">• IMPORTADO</span>}
+          </div>
         </div>
       </div>
     </motion.div>

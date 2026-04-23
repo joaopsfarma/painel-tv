@@ -218,6 +218,41 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
   });
 
 
+  const consumosOrdenados = consumos.sort((a, b) => b.vlCustoPeriodo - a.vlCustoPeriodo);
+  
+  // ── Cálculo Matemático da Curva ABC ──
+  const custoTotalEmpresa = consumosOrdenados.reduce((acc, curr) => acc + curr.vlCustoPeriodo, 0);
+  let somaCumulativa = 0;
+  
+  let classeA = { count: 0, val: 0 };
+  let classeB = { count: 0, val: 0 };
+  let classeC = { count: 0, val: 0 };
+
+  consumosOrdenados.forEach(c => {
+    somaCumulativa += c.vlCustoPeriodo;
+    const porcentagemAcumulada = somaCumulativa / custoTotalEmpresa;
+    
+    if (porcentagemAcumulada <= 0.70) {
+      classeA.count++;
+      classeA.val += c.vlCustoPeriodo;
+    } else if (porcentagemAcumulada <= 0.90) {
+      classeB.count++;
+      classeB.val += c.vlCustoPeriodo;
+    } else {
+      classeC.count++;
+      classeC.val += c.vlCustoPeriodo;
+    }
+  });
+
+  const abcSummary: ABCSummary = {
+    A: classeA.count,
+    B: classeB.count,
+    C: classeC.count,
+    valA: classeA.val,
+    valB: classeB.val,
+    valC: classeC.val
+  };
+
   // 3️⃣ PARSE: CONFIG INSGITH (VALIDADE)
   // O formato exato lido no PowerShell:
   // Coluna 1=ProdCod, 2=Vazio, 3=ProdutoNome, 4=Vazio, 5=Unidade... dependendo de como as vírgulas batem.
@@ -286,7 +321,8 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
     kpis,
     items,
     suppliers,
-    consumos: consumos.sort((a, b) => b.vlCustoPeriodo - a.vlCustoPeriodo),
+    abcSummary,
+    consumos: consumosOrdenados,
     validades: validades.sort((a, b) => a.diasParaVencer - b.diasParaVencer),
     kpisValidade: { itensVencendo30d, itensVencendo90d }
   };
