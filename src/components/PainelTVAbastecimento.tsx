@@ -578,36 +578,29 @@ function SlidePrescricoesHora() {
   return (
     <div className="flex flex-col gap-6 h-full">
       {/* KPIs no topo */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-4">
-          <p className="text-xs text-purple-300 font-bold uppercase">Total Prescrições (24h)</p>
-          <p className="text-3xl font-black text-purple-400">{total}</p>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-purple-500/15 border border-purple-500/40 rounded-xl p-6">
+          <p className="text-sm text-purple-300 font-bold uppercase mb-1">Total Prescrições (24h)</p>
+          <p className="text-5xl font-black text-purple-400">{total}</p>
         </div>
-        <div className="bg-lime-500/15 border border-lime-500/40 rounded-xl p-4">
-          <p className="text-xs text-lime-300 font-bold uppercase">Horário de Pico</p>
-          <p className="text-3xl font-black text-lime-400">11:00</p>
-          <p className="text-[10px] text-lime-500/70">{peak} presc/hora</p>
+        <div className="bg-lime-500/15 border border-lime-500/40 rounded-xl p-6">
+          <p className="text-sm text-lime-300 font-bold uppercase mb-1">Horário de Pico</p>
+          <div className="flex items-baseline gap-3">
+            <span className="text-5xl font-black text-lime-400">11:00</span>
+            <span className="text-xl font-bold text-lime-500/70">{peak} presc.</span>
+          </div>
         </div>
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
-          <p className="text-xs text-slate-400 font-bold uppercase">Média por Hora</p>
-          <p className="text-3xl font-black text-white">{(total / 24).toFixed(1)}</p>
-        </div>
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
-          <p className="text-xs text-slate-400 font-bold uppercase">Unidade</p>
-          <p className="text-3xl font-black text-white text-purple-400">BSB</p>
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-6">
+          <p className="text-sm text-slate-400 font-bold uppercase mb-1">Média Hospitalar</p>
+          <p className="text-5xl font-black text-white">{(total / 24).toFixed(1)}</p>
+          <p className="text-xs text-slate-500 font-semibold uppercase tracking-tighter">prescrições por hora</p>
         </div>
       </div>
 
       {/* Gráfico Principal */}
       <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={PRESC_DATA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.6}/>
-                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
+          <BarChart data={PRESC_DATA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis 
               dataKey="hour" 
@@ -628,18 +621,15 @@ function SlidePrescricoesHora() {
             <Tooltip
               contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff' }}
               itemStyle={{ color: '#a855f7', fontWeight: 'bold' }}
-              cursor={{ stroke: '#a855f7', strokeWidth: 2 }}
+              cursor={{ fill: 'rgba(168, 85, 247, 0.1)' }}
             />
-            <Area 
-              type="monotone" 
+            <Bar 
               dataKey="val" 
-              stroke="#a855f7" 
-              strokeWidth={4}
-              fillOpacity={1} 
-              fill="url(#colorVal)" 
+              fill="#a855f7" 
+              radius={[6, 6, 0, 0]}
               animationDuration={2000}
             />
-          </AreaChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>
