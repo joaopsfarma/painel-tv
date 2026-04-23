@@ -6,7 +6,7 @@ import {
   ArrowLeft, Zap, AlertTriangle, DollarSign, BarChart2, Truck, CalendarClock, PieChart as PieChartIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area, CartesianGrid } from 'recharts';
 import { type FollowUpItem } from '../types';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
