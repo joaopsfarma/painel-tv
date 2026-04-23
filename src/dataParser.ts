@@ -81,6 +81,7 @@ export interface TVValidadeItem {
   quantidade: number;
   estoqueAtual: number;
   estoqueNum: string; // Código do estoque (332, 336, 501...)
+  valorTotal: number;
 }
 
 export interface AbastecimentoTVData {
@@ -98,6 +99,8 @@ export interface AbastecimentoTVData {
     itensVencendo90d: number;
     totalLotes: number;
     totalProdutosEstoque: number;
+    valorEmRisco90d: number;
+    valorTotalEstoque: number;
   };
   kpisConsumo?: {
     custoTotal: number;
@@ -370,6 +373,7 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
         const produto = raw[5] || "ITEM DESCONHECIDO";
         const lote = raw[9] || "S/L";
         const quantidade = parseBrNumber(raw[13]);
+        const valorTotal = parseBrNumber(raw[14]);
         
         const [dd, mm, yyyy] = validadeStr.split('/');
         const dateObj = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
@@ -383,7 +387,8 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
           diasParaVencer: diffDays,
           quantidade,
           estoqueAtual: quantidade,
-          estoqueNum: currentEstoqueNum
+          estoqueNum: currentEstoqueNum,
+          valorTotal: valorTotal
         });
       }
     });
@@ -479,8 +484,17 @@ export async function processCSVToTVData(): Promise<AbastecimentoTVData> {
       itensVencendo30d: contValidItems.filter(v => v.diasParaVencer <= 30 && v.diasParaVencer >= 0).length,
       itensVencendo90d: contValidItems.filter(v => v.diasParaVencer <= 90 && v.diasParaVencer >= 0).length,
       totalLotes: contValidItems.length,
-      totalProdutosEstoque: new Set(contValidItems.map(v => v.produto)).size
-    } : { itensVencendo30d, itensVencendo90d, totalLotes: validades.length, totalProdutosEstoque: produtosDistintos },
+      totalProdutosEstoque: new Set(contValidItems.map(v => v.produto)).size,
+      valorEmRisco90d: contValidItems.filter(v => v.diasParaVencer <= 90 && v.diasParaVencer >= 0).reduce((s, v) => s + v.valorTotal, 0),
+      valorTotalEstoque: contValidItems.reduce((s, v) => s + v.valorTotal, 0)
+    } : { 
+      itensVencendo30d, 
+      itensVencendo90d, 
+      totalLotes: validades.length, 
+      totalProdutosEstoque: produtosDistintos,
+      valorEmRisco90d: 0,
+      valorTotalEstoque: 0
+    },
     kpisConsumo,
   };
 }

@@ -719,72 +719,114 @@ function FollowUpSlide({ items, pageIndex, totalPages }: {
 // ── Sub-componente: Dashboard de Validade ──────────────────────────────────
 
 function SlideDashValidade({ validades, kpis }: { validades: TVValidadeItem[], kpis: any }) {
-  // Agrupar por mês/ano de vencimento
-  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const chartData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    const now = new Date();
-    
-    // Pegamos os próximos 6 meses
-    for (let i = 0; i < 6; i++) {
-       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-       const key = `${months[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
-       counts[key] = 0;
-    }
-
+  // 1. Agrupar Risco Financeiro por Estoque
+  const estoqueRiskData = useMemo(() => {
+    const map = new Map<string, number>();
     validades.forEach(v => {
-      const d = v.validadeData instanceof Date ? v.validadeData : new Date(v.validadeData);
-      if (!isNaN(d.getTime()) && d > now) {
-        const key = `${months[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
-        if (counts[key] !== undefined) counts[key] += v.quantidade;
+      // Consideramos risco tudo que vence em < 120 dias
+      if (v.diasParaVencer <= 120 && v.diasParaVencer >= 0) {
+        map.set(v.estoqueNum, (map.get(v.estoqueNum) || 0) + v.valorTotal);
       }
     });
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name: `Est. ${name}`, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [validades]);
 
-    return Object.entries(counts).map(([name, total]) => ({ name, total }));
+  // 2. Top 5 Itens Ofensores (Valor em Risco)
+  const topExpiringItems = useMemo(() => {
+    return [...validades]
+      .filter(v => v.diasParaVencer <= 120 && v.diasParaVencer >= 0)
+      .sort((a, b) => b.valorTotal - a.valorTotal)
+      .slice(0, 5);
   }, [validades]);
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      {/* KPIs Grid */}
+      {/* ── SEÇÃO SUPERIOR: KPIs FINANCEIROS ── */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5">
-           <p className="text-xs font-bold text-red-400 uppercase mb-1">Vence &lt; 30 Dias</p>
-           <p className="text-4xl font-black text-red-500">{kpis.itensVencendo30d}</p>
+        <div className="bg-red-500/15 border border-red-500/40 rounded-2xl p-6">
+           <p className="text-xs font-bold text-red-300 uppercase mb-2">Valor em Risco (90 dias)</p>
+           <p className="text-4xl font-black text-red-500">
+             R$ {kpis.valorEmRisco90d.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+           </p>
+           <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+             <div 
+               className="h-full bg-red-500" 
+               style={{ width: `${(kpis.valorEmRisco90d / kpis.valorTotalEstoque * 100) || 0}%` }} 
+             />
+           </div>
         </div>
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5">
-           <p className="text-xs font-bold text-amber-400 uppercase mb-1">Vence &lt; 90 Dias</p>
-           <p className="text-4xl font-black text-amber-500">{kpis.itensVencendo90d}</p>
+        <div className="bg-purple-500/15 border border-purple-500/40 rounded-2xl p-6">
+           <p className="text-xs font-bold text-purple-300 uppercase mb-2">Valor Total Monitorado</p>
+           <p className="text-4xl font-black text-purple-400">
+             R$ {kpis.valorTotalEstoque.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+           </p>
         </div>
-        <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-5">
-           <p className="text-xs font-bold text-purple-400 uppercase mb-1">Lotes Monitorados</p>
-           <p className="text-4xl font-black text-purple-500">{kpis.totalLotes}</p>
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
+           <p className="text-xs font-bold text-slate-400 uppercase mb-2">Lotes Analisados</p>
+           <p className="text-4xl font-black text-white">{kpis.totalLotes}</p>
         </div>
-        <div className="bg-slate-800/60 border border-slate-700/30 rounded-xl p-5">
-           <p className="text-xs font-bold text-slate-400 uppercase mb-1">Estoque Total</p>
-           <p className="text-4xl font-black text-white">{validades.reduce((s,v) => s + v.quantidade, 0).toLocaleString('pt-BR')}</p>
+        <div className="bg-lime-500/15 border border-lime-500/40 rounded-2xl p-6">
+           <p className="text-xs font-bold text-lime-300 uppercase mb-2">Estoque Crítico</p>
+           <p className="text-4xl font-black text-lime-400">{estoqueRiskData[0]?.name || 'N/A'}</p>
         </div>
       </div>
 
-      {/* Gráfico de Projeção */}
-      <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 flex flex-col">
-        <p className="text-sm font-bold text-slate-400 uppercase mb-6">Projeção de Vencimento (Próximos 6 Meses)</p>
-        <div className="flex-1 min-h-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-              <XAxis dataKey="name" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-              />
-              <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                {chartData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : index === 1 ? '#f59e0b' : '#3b82f6'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="flex gap-6 flex-1 min-h-0">
+        {/* ── COLUNA ESQUERDA: RANKING DE ESTOQUES ── */}
+        <div className="w-[40%] bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 flex flex-col">
+          <p className="text-sm font-bold text-slate-300 uppercase mb-6 flex items-center gap-2">
+            <Monitor className="w-4 h-4 text-purple-400" />
+            Risco Financeiro por Localização
+          </p>
+          <div className="flex-1 min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={estoqueRiskData} layout="vertical" margin={{ left: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={14} fontWeight="bold" axisLine={false} tickLine={false} />
+                <Tooltip 
+                  formatter={(val: any) => `R$ ${Number(val).toLocaleString('pt-BR')}`}
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px' }}
+                />
+                <Bar dataKey="value" fill="#a855f7" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ── COLUNA DIREITA: TOP ITENS EM RISCO ── */}
+        <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-3xl p-6 flex flex-col">
+          <p className="text-sm font-bold text-red-400 uppercase mb-6">
+            Top 5 Lotes com Maior Perda em Potencial
+          </p>
+          <div className="flex flex-col gap-3 flex-1">
+            {topExpiringItems.map((item, idx) => (
+              <div key={`${item.produto}-${idx}`} className="bg-slate-900/60 border border-slate-700/30 rounded-2xl p-4 flex justify-between items-center transition-all hover:bg-slate-900">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="bg-red-500/10 text-red-500 font-bold text-xl w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white font-black text-sm truncate">{toTitleCase(item.produto)}</p>
+                    <div className="flex gap-3 text-[11px] text-slate-500 mt-1 uppercase font-bold">
+                      <span className="text-red-400">Vence: {item.validadeStr}</span>
+                      <span>Lote: {item.lote}</span>
+                      <span className="text-purple-400">Est: {item.estoqueNum}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-4">
+                  <p className="text-2xl font-black text-white">
+                    R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase">{item.quantidade} UNIDADES</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
