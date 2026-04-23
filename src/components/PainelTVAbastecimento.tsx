@@ -1359,7 +1359,7 @@ export function PainelTVAbastecimento({ onBack, followUpData }: PainelTVAbasteci
               />
             )}
             {currentSlide.type === 'consumo' && tvData!.consumos && (
-              <SlideConsumoABC consumos={tvData!.consumos} abc={tvData!.abcSummary} kpisConsumo={tvData!.kpisConsumo} />
+              <SlideConsumoABC consumos={tvData!.consumos} abc={tvData!.abcSummary} />
             )}
             {currentSlide.type === 'estoque_validade' && tvData!.validades && (
               <SlideValidadeEstoque
